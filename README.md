@@ -36,7 +36,7 @@ when a real person does something: pays, signs, books, or says no.
 
 | command | job | what it does |
 | --- | --- | --- |
-| `/receipts` | Evidence keeper | The ledger every skill writes to. Logs real calls, deposits, pilots and refusals, audits what is real versus guessed, and lists the gaps. No receipt, no claim. |
+| `/receipts` | Evidence keeper | The ledger every skill writes to. Logs real calls, deposits, pilots and refusals, audits what is real versus guessed, and lists the gaps. Keeps one story file per project: the problem before, who did what, where it broke. No receipt, no claim. |
 | `/shark-board` | Board of directors | Four members, each a sub-agent applying one published framework (Offers, Monopoly, Product, Evidence), find what would kill the idea, the cheapest test for each, and vote. |
 | `/ground-truth` | Competitor scout | Direct competitors, indirect ones and substitutes from public sources, with prices and what their customers complain about, every fact linked. |
 | `/truth-serum` | Consumer panel | A swarm of simulated buyers (100 by default) told not to be polite. Surfaces objections and turns them into questions for real calls. Simulated, never proof. |
@@ -49,12 +49,26 @@ when a real person does something: pays, signs, books, or says no.
 | `/prove-it` | Launch | The real-world test first, with a success line and a kill line logged before it runs, then the countdown. |
 | `/kill-or-build` | Business plan | The plan with a computed verdict: Incomplete, Not yet, Unproven or Profitable. |
 | `/handshake` | Pitch | The thing one real person needs to say yes: a pilot offer, a grant pitch, a one-pager. Checked against the ledger before it goes. |
-| `/first-dollar` | Funding | Grants, RFPs, loans and programs that fit, with official links and the first step. |
+| `/first-dollar` | Funding | Grants, RFPs, loans and programs that fit, with official links and the first step. Starts from a built-in list of 42 places to look in the US, UK, EU and beyond. |
 
 ## How to use it
 
 Everything lives in a `founder/` folder in your project. Each skill reads what
 the others wrote.
+
+```
+founder/
+  START-HERE.md     the map
+  me.md             who is behind it
+  idea.md ...       what the other skills write (board, panel, pricing, offer, cfo, plan)
+  work/             one story file per project, pilot or client
+  evidence/         the ledger (claims.csv), the evidence log, real people, call notes, originals
+  opportunities/    one file per customer, funder or internal ask
+  outputs/          every pitch, dated
+```
+
+One home per fact: a number lives once in the ledger, and every other file
+points to it by its claim id.
 
 ```
 receipts -> shark-board -> ground-truth -> truth-serum -> litmus -> dealbreaker -> burn-test -> signal -> straight-talk -> reality-check -> prove-it -> kill-or-build -> handshake -> first-dollar
@@ -77,6 +91,23 @@ What a run looks like, honestly:
 5. `/handshake` writes a one-page pilot offer for five real buyers.
 6. One says yes. `/receipts` logs it, and the plan can say Profitable for the
    first time.
+
+## What's new
+
+- **A funding list.** `/first-dollar` starts from 42 grants, procurement
+  portals and programs (NSF Seed Fund, SBIR.gov, SAM.gov, Innovate UK, EIC,
+  IRAP, startup credits and more), each with its link, who it is for, how to
+  start and the date it was checked. Confirm amounts and deadlines on the
+  official page before you use them.
+- **Project story files.** `founder/work/` holds one file per project, pilot or
+  client: the problem before, who did what, where it broke, what is still
+  unproven, and one sentence to reuse in pitches.
+- **A better interview.** `/receipts` now asks about each project, and asks
+  whether you may use a person's words and name before anyone is quoted.
+- **Folder rules.** One home per fact, originals stay original, small files,
+  private stays private.
+- **Peers count.** Someone in your cohort or network who runs your build on
+  their own work is a real case study, and the people template says so.
 
 ## Install
 
