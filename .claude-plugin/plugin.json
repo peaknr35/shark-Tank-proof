@@ -1,0 +1,20 @@
+{
+  "name": "shark-tank-proof",
+  "description": "Fourteen free Claude skills that test a business before you launch it and get you to the first real yes: a board that disagrees with you, a competitor scout, a simulated buyer panel, pricing, the offer, a CFO, marketing, brand, operations, a launch test, the plan, an evidence ledger, pitches and funding. Free, MIT.",
+  "version": "2.0.0",
+  "author": {
+    "name": "Shark Tank Proof contributors"
+  },
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "claude-skills",
+    "startup",
+    "business-plan",
+    "unit-economics",
+    "customer-discovery",
+    "evidence",
+    "pitch",
+    "grants"
+  ]
+}

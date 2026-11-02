@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "shark-tank-proof",
+  "description": "Shark Tank Proof: a board that bites before investors do",
+  "owner": {
+    "name": "Shark Tank Proof contributors"
+  },
+  "plugins": [
+    {
+      "name": "shark-tank-proof",
+      "description": "Fourteen Claude skills that test a business before you launch it and keep every claim labelled as measured, said by a real person, planned or simulated, so the pack never tells you an idea works when no real buyer has said yes.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
