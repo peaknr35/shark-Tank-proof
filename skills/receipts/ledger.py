@@ -56,6 +56,8 @@ The file itself lives in this folder; claims in claims.csv point here by id.
 
 | Id | What it is | Where it came from | Date | Use |
 |---|---|---|---|---|
+<!-- Example: | e01 | Screenshot of the before and after timings | My own test run | 2026-10-24 | PUBLIC | -->
+<!-- Example: | e02 | Client email saying it saved them a day | Email from the client | 2026-10-20 | ASK FIRST | -->
 """
 
 PEOPLE = """# People
@@ -64,6 +66,10 @@ Real people only. A simulated buyer never goes here.
 
 | Name | Who they are | What we did together | What they said | Can I name them? |
 |---|---|---|---|---|
+<!-- Example: | J. Doe | Client / partner / cohort member / mentor | Ran the build on a week of their orders | "It saved me Monday mornings" | Asked 24 Oct, yes | -->
+
+Peers count. Someone in your cohort or network who runs your build on their own
+work and tells you what happened is a real case study.
 """
 
 
@@ -81,7 +87,7 @@ def _claims_path(d):
 
 def init(d):
     made = []
-    for sub in ("evidence", os.path.join("evidence", "calls"), "opportunities", "outputs"):
+    for sub in ("evidence", os.path.join("evidence", "calls"), "work", "opportunities", "outputs"):
         p = os.path.join(d, sub)
         if not os.path.isdir(p):
             os.makedirs(p)

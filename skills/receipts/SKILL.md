@@ -42,6 +42,7 @@ founder/
   START-HERE.md        the map (copy templates/START-HERE.md)
   me.md                who is behind it (copy templates/me.md)
   idea.md ...          what the other skills write
+  work/                one file per project, pilot or client (copy templates/work-record.md)
   evidence/
     claims.csv         the ledger; claims.md and summary.json are written from it
     evidence-log.md    one row per original file
@@ -65,6 +66,10 @@ Ask which one if it is not clear. Do one at a time.
 - Read any files they give you. File the originals in `founder/evidence/`, add
   one row each to `evidence-log.md`, then add one claim per fact with `LEDGER
   add`. Keep their words.
+- For each project, pilot or client they describe, write one
+  `founder/work/<name>.md` from `templates/work-record.md`: the problem before,
+  who did what, where it broke, what is still unproven, and one suggested
+  sentence for pitches. It lists ledger ids; the facts stay in the ledger.
 - If other Shark Tank Proof skills already ran, sweep their outputs and log what they
   found with the right status: the panel's buy rate and board scores are
   `SIMULATED`; the CFO's margin and ramp are `PLANNED`; a supplier quote or a

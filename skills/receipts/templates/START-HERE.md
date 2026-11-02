@@ -10,6 +10,7 @@
 |---|---|
 | Know who is behind this | `me.md` |
 | See the idea | `idea.md` |
+| See one piece of work and its story | `work/` |
 | See what is real and what is a guess | `evidence/claims.md` |
 | Check where a number or quote came from | `evidence/evidence-log.md` |
 | See the real people I have talked to | `evidence/people.md`, `evidence/calls/` |

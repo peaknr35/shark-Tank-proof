@@ -21,7 +21,7 @@ class Ledger(unittest.TestCase):
         shutil.rmtree(self.d)
 
     def test_init_makes_the_folders(self):
-        for sub in ("evidence", "evidence/calls", "opportunities", "outputs"):
+        for sub in ("evidence", "evidence/calls", "work", "opportunities", "outputs"):
             self.assertTrue(os.path.isdir(os.path.join(self.d, sub)), sub)
         self.assertEqual(ledger.init(self.d), [])
 

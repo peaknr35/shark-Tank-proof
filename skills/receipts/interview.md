@@ -23,14 +23,24 @@ give you files, read those first and skip what the files already answer.
 9. Where has it broken, and what did you change?
 10. What is still unproven? What would hurt most if it turned out wrong?
 
+## About each piece of work (one founder/work/ file each)
+
+Ask these for every project, pilot or client they mention.
+
+11. What is it, and who was it for?
+12. What was the problem before you started, and how do they measure it?
+13. What did you actually do, and who else was involved?
+14. Did anyone say anything about it in writing or on a call? Can we use their
+    words, and their name? (Record the answer in `people.md`.)
+
 ## About the next yes (fills opportunities/ and the gaps)
 
-11. Who has to say yes for your next step: a customer, a funder, someone inside
+15. Who has to say yes for your next step: a customer, a funder, someone inside
     your business, or the people who will use it?
-12. What do you want from them: a call, a pilot, money, a budget, adoption?
-13. How much money or time would it take, and what would it pay for?
-14. Who could vouch for you, partner with you, or test it for you?
-15. What must stay private?
+16. What do you want from them: a call, a pilot, money, a budget, adoption?
+17. How much money or time would it take, and what would it pay for?
+18. Who could vouch for you, partner with you, or test it for you?
+19. What must stay private?
 
 When it is done, file the originals, log the claims, then read back the three
 strongest real claims and the three biggest gaps, and ask whether they are right.

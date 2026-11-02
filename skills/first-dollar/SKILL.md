@@ -36,7 +36,9 @@ filter on this.
 
 ## Step 2: search
 
-Use the six places and the searches in `finding-money.md`. Search the web if
+Start from `${CLAUDE_SKILL_DIR}/funding-list.md`, keeping only the entries
+whose eligibility fits. Then use the six places and the searches in
+`finding-money.md` for what the list misses. Search the web if
 you can; if you cannot, say so and give the founder the searches to run.
 Read each candidate's official page. Check eligibility first and drop anything
 that fails it.

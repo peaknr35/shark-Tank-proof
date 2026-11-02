@@ -5,10 +5,12 @@ saved in `founder/opportunities/`.
 
 ## Start from a list you trust
 
-If the founder has a funding list from a cohort, an accelerator or a local
-business centre, read it first. Treat it as a starting point: amounts and
-deadlines change, so confirm each one on the official page before you write it
-down.
+Read `funding-list.md` next to this file first: 42 places to look across the
+US, the UK, the EU and other countries, each with its link, who it is for, how
+you start and the date it was checked. If the founder also has a list from a
+cohort, an accelerator or a local business centre, read that too. Treat both as
+a starting point: amounts and deadlines change, so confirm each one on the
+official page before you write it down.
 
 ## Work out what fits before searching
 

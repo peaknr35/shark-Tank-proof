@@ -80,3 +80,15 @@ still has a price: their time, their data, a quote if it works.
 
 Log where it broke and what changed. A pitch that says "we tried X, it failed
 because Y, so we changed Z" is trusted more than a perfect story.
+
+## 9. Keep the folder clean
+
+- **One home per fact.** A number lives in the ledger with its evidence id.
+  Pitches and `work/` files point to it by claim id. If it changes, change the
+  ledger and rebuild the pitch.
+- **Originals stay original.** The real file goes in `evidence/`. Summaries go
+  in `work/` or the ledger, never on top of the source.
+- **Small files.** One project per `work/` file, one opportunity per
+  `opportunities/` file, so a skill reads only what the job needs.
+- **Private stays private.** If the folder is shared (a team workspace, a
+  repo), keep `PRIVATE` originals out of it.
