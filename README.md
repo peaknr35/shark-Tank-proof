@@ -25,6 +25,11 @@ when a real person does something: pays, signs, books, or says no.
 - **Profitable needs a real buyer.** If the math works but nobody has paid,
   signed or booked, the verdict is **Unproven**. A simulated panel can fail a
   plan but never pass one.
+- **The ledger checks itself.** Every tool reads claims through the ledger's
+  rules, so a claim typed into `claims.csv` by hand with no evidence, a leak,
+  or no commitment counts as `SIMULATED`. A buyer is a named commitment (paid,
+  deposit, signed, booked, intro) with a count of at least one and its own
+  evidence; a signup is not a buyer.
 - **Profitable needs real inputs too.** The price has to be one a real buyer
   paid, and every cost needs a quote or an invoice. A `PLANNED` price or cost
   holds the plan at Unproven. Only the volumes (the ramp, the plan, selling
@@ -181,7 +186,7 @@ All standard-library Python. None touch the network.
 
 ```bash
 python3 skills/receipts/ledger.py init
-python3 skills/receipts/ledger.py add --claim "2 of 5 firms agreed to a pilot" --kind demand --status MEASURED --use ANONYMISED --number "2 of 5" --evidence e04
+python3 skills/receipts/ledger.py add --claim "2 of 5 firms agreed to a pilot" --kind demand --status MEASURED --use ANONYMISED --number "2 of 5" --commitment signed --evidence e04
 python3 skills/receipts/ledger.py add --claim "Recommended price" --kind price --use PRIVATE --number "$6.50" --from c07
 python3 skills/receipts/ledger.py summary
 python3 skills/receipts/ledger.py scan founder/outputs/2026-11-02-acme.md --audience public

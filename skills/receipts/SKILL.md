@@ -80,9 +80,13 @@ Ask which one if it is not clear. Do one at a time.
 ### 2. Log real contact
 
 Anything a real person did: a call, an email, a deposit, a signed pilot, a
-refusal. Follow "Logging the call" in `${CLAUDE_SKILL_DIR}/conversations.md`. A
-no is logged too: `MEASURED`, kind `demand`, number `0 of 1`, with the reason
-in their words. If the founder has not talked to anyone yet, give them that
+refusal. Follow "Logging the call" in `${CLAUDE_SKILL_DIR}/conversations.md`.
+A yes is `MEASURED`, kind `demand`, with `--commitment` naming what they did
+(`paid`, `deposit`, `signed`, `booked`, `intro`) and the count as the number;
+the ledger refuses a buyer with no commitment, no count or no evidence. A
+signup or a waitlist is not a commitment: log it as kind `other`. A no is
+logged too: `MEASURED`, kind `demand`, number `0 of 1`, with the reason in
+their words. If the founder has not talked to anyone yet, give them that
 file and the five questions, and help them pick the first five people.
 
 ### 3. Audit

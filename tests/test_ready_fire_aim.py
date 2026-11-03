@@ -82,7 +82,7 @@ class Labels(unittest.TestCase):
         self.assertEqual(a["labels"]["allowable_acquisition_cost"]["status"], "SIMULATED")
 
     def test_kill_or_build_checks_the_cost_of_a_customer(self):
-        ledger.add(self.d, "Pop-up pre-orders at $6.50", "demand", "MEASURED", "ANONYMISED", "62", "e02")  # c01
+        ledger.add(self.d, "Pop-up pre-orders at $6.50", "demand", "MEASURED", "ANONYMISED", "62", "e02", commitment="paid")  # c01
         ledger.add(self.d, "Cost per pre-order, two-week test", "cost", "MEASURED", "PRIVATE", "$12", "e01")  # c02
         self.write(spec(acquisition_cost=12, sources={"acquisition_cost": "c02"}))
         v, text = plan.compile_plan(self.d)

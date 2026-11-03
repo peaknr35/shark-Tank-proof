@@ -63,6 +63,9 @@ add` so they cannot be moved afterwards:
   under 15 pre-orders, or 0 of 10 firms after a real ask.
 
 When the test ends, log the result as `MEASURED`, kind `demand`, with the
+commitment it asked for (`--commitment paid` for a pre-order, `signed` for a
+pilot, `booked` for a booked meeting), the count as the number (`0` if nobody
+said yes), and the
 evidence (the order export, the signed page, the emails), even if it is zero.
 Compare it with the panel's buy rate. Real buyers win every time: if they fall
 short of the panel, go back to `/dealbreaker` or `/litmus`; if they

@@ -36,7 +36,7 @@ class Compile(unittest.TestCase):
         ledger.init(self.d)
         with open(os.path.join(self.d, "evidence", "evidence-log.md"), "a", encoding="utf-8") as fh:
             fh.write("| e01 | Pre-order export | Shopify | 2026-11-01 | PRIVATE |\n")
-        ledger.add(self.d, "Pop-up pre-orders at $6.50", "demand", "MEASURED", "ANONYMISED", "62", "e01")
+        ledger.add(self.d, "Pop-up pre-orders at $6.50", "demand", "MEASURED", "ANONYMISED", "62", "e01", commitment="paid")
 
     def test_no_numbers_is_incomplete(self):
         v, text = plan.compile_plan(self.d)

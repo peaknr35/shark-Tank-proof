@@ -57,7 +57,7 @@ what-if is never handed off.
 """
 
 import argparse
-import csv
+import importlib.util
 import json
 import math
 import os
@@ -124,12 +124,19 @@ def _sum(items, field):
 
 
 def load_ledger(d):
-    """Claim rows by id from <d>/evidence/claims.csv, or {} when there is no ledger."""
+    """Claim rows by id from <d>/evidence/claims.csv, or {} when there is no ledger.
+
+    Read through the receipts ledger's checks: a claim that breaks a rule (no evidence, an evidence id that is
+    not in the log, a label leak) counts as SIMULATED, so a hand-edited claims.csv cannot make an input look real.
+    """
     path = os.path.join(d, "evidence", "claims.csv") if d else ""
     if not path or not os.path.exists(path):
         return {}
-    with open(path, encoding="utf-8", newline="") as fh:
-        return {(r.get("id") or "").strip(): r for r in csv.DictReader(fh)}
+    spec = importlib.util.spec_from_file_location(
+        "founder_ledger", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "receipts", "ledger.py"))
+    ledger = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ledger)
+    return {r["id"]: r for r in ledger.load_checked(d)[0]}
 
 
 def _weakest(pairs):

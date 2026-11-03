@@ -193,7 +193,7 @@ class Handoff(Base):
             json.dump(spec(**change), fh)
 
     def real_buyer(self):
-        ledger.add(self.d, "Pop-up pre-orders", "demand", "MEASURED", "ANONYMISED", "62", "e02")
+        ledger.add(self.d, "Pop-up pre-orders", "demand", "MEASURED", "ANONYMISED", "62", "e02", commitment="paid")
 
     def test_a_panel_price_cannot_make_the_plan_profitable(self):
         # litmus: the range is SIMULATED, the price is logged --from it, numbers.json points at it
@@ -266,7 +266,8 @@ class Handoff(Base):
                 evidence="", checked="2026-11-01", by="", **{"from": "c01"}))
         self.write_numbers()
         _, text = plan.compile_plan(self.d)
-        self.assertIn("**Label leaks in the ledger**", text)
+        self.assertIn("**Claims the ledger rejects**", text)
+        self.assertIn("c02: label leak", text)
 
 
 class Litmus(unittest.TestCase):

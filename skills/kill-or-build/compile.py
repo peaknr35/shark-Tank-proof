@@ -21,6 +21,12 @@ The checks:
 
 A simulated panel can fail a plan but never pass one. Only a real buyer can.
 
+Every claim is read through ledger.load_checked: a claim that breaks a rule (no evidence, an evidence id not in
+the log, a label or use leak, a demand claim with no commitment or no count) counts as SIMULATED, so editing
+claims.csv by hand cannot make a plan Profitable. A real buyer is a MEASURED demand claim with a commitment
+(paid, deposit, signed, booked, intro), at least one buyer counted and its own evidence. A real price is a
+MEASURED sale or price claim that names the price in numbers.json.
+
 Profitable also needs the inputs that can be real before launch to be real (MEASURED or THEY SAID IT): the
 price a real buyer paid, a quote or invoice for every variable and fixed cost, and the real cost of winning a
 customer if one is given. A PLANNED price or cost holds the verdict at Unproven. The volumes stay forecasts.
@@ -41,6 +47,7 @@ import importlib.util
 import json
 import math
 import os
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -98,13 +105,16 @@ def verdict(d, min_buy_rate=0.25):
     checks = []
     numbers = panel = None
     ledger = _load("receipts", "ledger")
-    evidence = ledger.summarise(ledger.load(d))
+    rows, rejected = ledger.load_checked(d)  # a claim that breaks a rule counts as SIMULATED here
+    by_id = {r["id"]: r for r in rows}
+    evidence = ledger.summarise(rows)
     simulated_passes = []  # money checks that pass only on a simulated input
     planned_inputs = []  # inputs that could be real today but are still estimates
     raw = _read(os.path.join(d, "numbers.json"))
     if raw:
         ue = _load_unit_economics()
-        numbers = ue.analyse(json.loads(raw), ledger={r["id"]: r for r in ledger.load(d)})
+        spec = json.loads(raw)
+        numbers = ue.analyse(spec, ledger=by_id)
 
         def money(ok, text, result):
             lab = numbers["labels"][result]
@@ -134,6 +144,10 @@ def verdict(d, min_buy_rate=0.25):
             if lab["status"] not in REAL and lab["status"] != "SIMULATED":  # SIMULATED is caught above
                 why = lab["why"]
                 planned_inputs.append("; ".join(why[:3]) + (" and %d more" % (len(why) - 3) if len(why) > 3 else ""))
+            elif k == "price" and lab["status"] in REAL:
+                why_not = not_a_real_sale(spec, numbers["price"], by_id, ledger)
+                if why_not:
+                    planned_inputs.append(why_not)
     raw = _read(os.path.join(d, "panel", "results.json"))
     if raw:
         panel = json.loads(raw)
@@ -156,11 +170,40 @@ def verdict(d, min_buy_rate=0.25):
         checks.append((False, "Rests on estimates that could be real today, so it cannot make the plan Profitable: %s."
                        " Log the price a real buyer paid and a quote or invoice for each cost with /receipts, cite them"
                        " in numbers.json, and compile again." % "; ".join(planned_inputs)))
+    if rejected:
+        checks.append((False, "%d claim%s in the ledger break%s a rule, so each counts as SIMULATED until it is fixed"
+                       " with /receipts: %s." % (len(rejected), "" if len(rejected) == 1 else "s",
+                                                 "s" if len(rejected) == 1 else "", "; ".join(rejected[:3]) +
+                                            (" and %d more" % (len(rejected) - 3) if len(rejected) > 3 else ""))))
     if numbers is not None:
         numbers["simulated_passes"] = simulated_passes
         numbers["planned_inputs"] = planned_inputs
         numbers["stale_handoff"] = stale_handoff(d, numbers)
     return v, checks, numbers, panel, evidence
+
+
+def not_a_real_sale(spec, price, by_id, ledger):
+    """Why the price is not one a real buyer paid, or None if it is.
+
+    The label alone is not enough: a THEY SAID IT price ("I would pay $6.50") is a compliment, and a MEASURED
+    claim for a sale at another price says nothing about this one. Every claim the price cites must be MEASURED,
+    must be a price claim or a real commitment, and must name this price.
+    """
+    refs = (spec.get("sources") or {}).get("price")
+    refs = [refs] if isinstance(refs, str) else list(refs or [])
+    for cid in [str(x).strip() for x in refs if re.match(r"^c\d+$", str(x).strip())]:
+        r = by_id.get(cid)
+        if r is None:
+            return "price [%s] is not in the ledger" % cid
+        if r["status"] != "MEASURED":
+            return ("price [%s] is %s: a price is real only when a buyer paid it, so log the sale as MEASURED"
+                    % (cid, r["status"]))
+        if not (r["kind"] == "price" or ledger.is_commitment(r)):
+            return "price [%s] is a %s claim, not a price or a sale" % (cid, r["kind"])
+        amounts = [float(x.replace(",", "")) for x in re.findall(r"\d[\d,]*(?:\.\d+)?", r["number"] + " " + r["claim"])]
+        if not any(abs(a - price) < 0.005 for a in amounts):
+            return "price [%s] records a sale, but not at $%.2f, the price in numbers.json" % (cid, price)
+    return None
 
 
 def stale_handoff(d, numbers):
@@ -209,10 +252,10 @@ def compile_plan(d, min_buy_rate=0.25):
         L += ["", "The math works on paper. Nothing about demand is real yet: the numbers rest on estimates and"
               " simulated buyers. Run the real test in /prove-it, or get one pilot yes with /handshake,"
               " and log it with /receipts."]
-    leaks = [e for e in _load("receipts", "ledger").check(d)[0] if "label leak" in e or "computed from" in e]
-    if leaks:
-        L += ["", "**Label leaks in the ledger** (a computed claim says more than its sources; fix with /receipts):"]
-        L += ["- %s" % e for e in leaks]
+    rejected = _load("receipts", "ledger").load_checked(d)[1]
+    if rejected:
+        L += ["", "**Claims the ledger rejects** (each counts as SIMULATED until it is fixed with /receipts):"]
+        L += ["- %s" % e for e in rejected]
     stale = (numbers or {}).get("stale_handoff") or []
     if stale:
         L += ["", "**Stale handoff** (a source changed after /burn-test ran, so `cfo.md` is out of date; the verdict"

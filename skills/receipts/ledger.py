@@ -16,13 +16,13 @@ read only from here, so a guess can never turn into a fact on the way out.
              from a simulated price is SIMULATED, however clean the arithmetic.
 
 Files, all under <dir>/evidence/:
-    claims.csv        the ledger (id,claim,number,kind,status,use,evidence,checked,by,from)
+    claims.csv        the ledger (id,claim,number,kind,status,use,evidence,checked,by,from,commitment)
     evidence-log.md   one table row per original: | e01 | what | where from | date | use |
     claims.md         written by `summary`, grouped by status
     summary.json      written by `summary`, read by kill-or-build
 
     python3 ledger.py init                           # make founder/evidence, opportunities, outputs
-    python3 ledger.py add --claim "3 firms paid a deposit" --kind demand --status MEASURED --use ANONYMISED --evidence e04
+    python3 ledger.py add --claim "3 firms paid a deposit" --kind demand --status MEASURED --use ANONYMISED --number 3 --commitment deposit --evidence e04
     python3 ledger.py add --claim "Contribution per cup" --kind cost --use PRIVATE --number "$4.76" --from c07,c08
                                                      # no --status: it takes the weakest label of c07 and c08
     python3 ledger.py label c07,c08                  # the label a number computed from these would carry
@@ -44,7 +44,15 @@ import sys
 STATUSES = ["MEASURED", "THEY SAID IT", "PLANNED", "SIMULATED"]
 USES = ["PUBLIC", "ANONYMISED", "ASK FIRST", "PRIVATE"]
 KINDS = ["demand", "price", "cost", "product", "market", "team", "other"]
-FIELDS = ["id", "claim", "number", "kind", "status", "use", "evidence", "checked", "by", "from"]
+FIELDS = ["id", "claim", "number", "kind", "status", "use", "evidence", "checked", "by", "from", "commitment"]
+# What a real yes is (rules.md, rule 3): money, a signature, real time or reputation. A MEASURED demand claim names
+# which one; a signup, a like, a follow or a download is none of them.
+COMMITMENTS = ["paid", "deposit", "signed", "booked", "intro"]
+# Words that sound like interest, not commitment. A warning, not an error: "signed" is a commitment, "signups" is not.
+NOT_A_COMMITMENT = re.compile(r"\b(sign[- ]?ups?|waitlist|wait list|subscribers?|followers?|likes?|views?|downloads?|"
+                              r"visits?|visitors|clicks?|opt[- ]?ins?|emails? collected|interested|free trials?)\b", re.I)
+# Most private last. A number computed from others may be shown to no wider an audience than its most private source.
+USE_RANK = {"PUBLIC": 0, "ANONYMISED": 1, "ASK FIRST": 2, "PRIVATE": 3}
 NEEDS_EVIDENCE = ("MEASURED", "THEY SAID IT")
 # Strongest first. A number computed from several others takes the weakest of their labels.
 STRENGTH = {"MEASURED": 3, "THEY SAID IT": 2, "PLANNED": 1, "SIMULATED": 0}
@@ -126,6 +134,20 @@ def trace(rows_by_id, cid, depth=0, seen=()):
     return lines
 
 
+def count(number):
+    """The number of buyers a demand claim records: the first whole number in it, or None if there is none.
+
+    "62", "62 at $6.50" and "2 of 5" give 62, 62 and 2. "0 of 10" gives 0. "", "not yet", "zero", "n/a" give None.
+    """
+    m = re.search(r"\d[\d,]*", number or "")
+    return int(m.group(0).replace(",", "")) if m else None
+
+
+def most_private(uses):
+    uses = [u for u in uses if u in USE_RANK]
+    return max(uses, key=USE_RANK.get) if uses else None
+
+
 def _ev_dir(d):
     return os.path.join(d, "evidence")
 
@@ -194,7 +216,7 @@ def _header(d):
         return next(csv.reader(fh), [])
 
 
-def add(d, claim, kind, status, use, number="", evidence="", checked=None, by="", derived_from=""):
+def add(d, claim, kind, status, use, number="", evidence="", checked=None, by="", derived_from="", commitment=""):
     """Log one claim. With derived_from (claim ids) and no status, the status is the weakest of the sources.
 
     A status stronger than the weakest source is refused: that is the label leak rule 10 stops.
@@ -208,7 +230,7 @@ def add(d, claim, kind, status, use, number="", evidence="", checked=None, by=""
             status = floor
     row = {"id": "", "claim": claim, "number": number, "kind": kind, "status": status or "", "use": use,
            "evidence": evidence, "checked": checked or datetime.date.today().isoformat(), "by": by,
-           "from": derived_from}
+           "from": derived_from, "commitment": commitment}
     problems = problems_for(row, evidence_ids(d), by_id)
     if problems:
         raise LedgerError("; ".join(problems))
@@ -243,6 +265,24 @@ def problems_for(r, ev_ids, rows_by_id=None, today=None):
         if r["status"] in STRENGTH and STRENGTH[r["status"]] > STRENGTH[floor]:
             out.append("label leak: computed from %s (%s), so it can be at most %s, not %s"
                        % (", ".join(weak_ids), floor, floor, r["status"]))
+        tightest = most_private(rows_by_id[s]["use"] for s in sources if s in rows_by_id)
+        if tightest and r["use"] in USE_RANK and USE_RANK[r["use"]] < USE_RANK[tightest]:
+            out.append("use leak: computed from a %s claim, so it may be shown at most as %s, not %s"
+                       % (tightest, tightest, r["use"]))
+    commitment = (r.get("commitment") or "").strip()
+    if commitment and commitment not in COMMITMENTS:
+        out.append("commitment %r is not one of %s" % (commitment, ", ".join(COMMITMENTS)))
+    if commitment and r["kind"] != "demand":
+        out.append("only a demand claim has a commitment")
+    if r["kind"] == "demand" and r["status"] == "MEASURED":
+        n = count(r["number"])
+        if n is None:
+            out.append("MEASURED demand needs a number: how many paid, signed or booked (0 for a logged no)")
+        elif n > 0 and commitment not in COMMITMENTS:
+            out.append("MEASURED demand needs --commitment (%s): a signup, a like or a waitlist is not a commitment"
+                       % " / ".join(COMMITMENTS))
+        if n and sources and not r["evidence"]:
+            out.append("a real buyer needs its own evidence id: a computed claim cannot count as a buyer")
     if r["status"] in NEEDS_EVIDENCE:
         if not r["evidence"] and sources:
             pass  # a computed claim carries the evidence of the claims it came from
@@ -261,30 +301,64 @@ def problems_for(r, ev_ids, rows_by_id=None, today=None):
 
 def check(d, today=None):
     """Return (errors, warnings), each a list of strings."""
+    errors, warnings, _ = _check_rows(d, today)
+    return errors, warnings
+
+
+def load_checked(d, today=None):
+    """The claims every verdict reads: (rows, rejected).
+
+    Each claim that breaks a rule (no evidence, an evidence id that is not in the log, a label or use leak, a
+    demand claim with no commitment) counts as SIMULATED until it is fixed, so a hand-edited claims.csv cannot
+    make anything look real. rejected lists "c04: why" for each one. load() is the raw file; this is the truth.
+    """
+    _, _, bad = _check_rows(d, today)
+    rows = []
+    for r in load(d):
+        if r["id"] in bad and r["status"] != "SIMULATED":
+            r = dict(r, status="SIMULATED", rejected="; ".join(bad[r["id"]]))
+        rows.append(r)
+    rejected = ["%s: %s" % (cid, "; ".join(p)) for cid, p in bad.items()]
+    return rows, rejected
+
+
+def _check_rows(d, today=None):
     today = today or datetime.date.today()
     rows, ev = load(d), evidence_ids(d)
     by_id = {r["id"]: r for r in rows}
-    errors, warnings, seen = [], [], set()
+    errors, warnings, seen, bad = [], [], set(), {}
     for r in rows:
         tag = r["id"] or "(no id)"
         if r["id"] in seen:
             errors.append("%s: duplicate id" % tag)
+            bad.setdefault(r["id"], []).append("duplicate id")
         seen.add(r["id"])
-        errors += ["%s: %s" % (tag, p) for p in problems_for(r, ev, by_id)]
+        problems = problems_for(r, ev, by_id)
+        if problems:
+            bad.setdefault(r["id"], []).extend(problems)
+        errors += ["%s: %s" % (tag, p) for p in problems]
+        if r["kind"] == "demand" and r["status"] == "MEASURED" and NOT_A_COMMITMENT.search(r["claim"]):
+            warnings.append("%s: %r sounds like interest, not a commitment. Only money, a signature, a booking or an"
+                            " introduction is a buyer" % (tag, NOT_A_COMMITMENT.search(r["claim"]).group(0)))
         try:
             age = (today - datetime.date.fromisoformat(r["checked"])).days
             if age > STALE_DAYS and r["status"] != "SIMULATED":
                 warnings.append("%s: last checked %d days ago, check it again before you pitch it" % (tag, age))
         except ValueError:
             pass
-    return errors, warnings
+    return errors, warnings, bad
 
 
 def is_commitment(r):
-    """A MEASURED demand claim that counts as a real yes. A logged no ("0", "0 of 10", "none") does not."""
+    """A MEASURED demand claim that counts as a real yes: a named commitment (paid, deposit, signed, booked, intro),
+    at least one buyer counted in its number, and its own evidence. A logged no ("0 of 10"), a blank or "not yet",
+    and a signup with no commitment do not count. Read rows through load_checked so a broken claim is SIMULATED."""
     if r["kind"] != "demand" or r["status"] != "MEASURED":
         return False
-    return not re.match(r"^\s*(0+(\.0+)?|none|no)(\s|$|\b)", r["number"].lower())
+    if (r.get("commitment") or "").strip() not in COMMITMENTS or not r.get("evidence"):
+        return False
+    n = count(r["number"])
+    return n is not None and n > 0
 
 
 def summarise(rows):
@@ -313,7 +387,7 @@ def summarise(rows):
 
 
 def write_summary(d):
-    rows = load(d)
+    rows, rejected = load_checked(d)
     s = summarise(rows)
     L = ["# The evidence", ""]
     b = s["by_status"]
@@ -326,6 +400,8 @@ def write_summary(d):
         L.append("**No real buyer has paid, signed or booked yet.** Everything about demand is a guess or a"
                  " simulation until one does.")
     L.append("")
+    if rejected:
+        L += ["**Rejected, counted as SIMULATED until fixed:**", ""] + ["- %s" % x for x in rejected] + [""]
     for status in STATUSES:
         group = [r for r in rows if r["status"] == status]
         if not group:
@@ -357,7 +433,7 @@ def scan(d, path, audience):
     """Check a pitch file: every [c01] it cites must pass the gate; hype needs measured demand behind it."""
     with open(path, encoding="utf-8") as fh:
         text = fh.read()
-    rows = {r["id"]: r for r in load(d)}
+    rows = {r["id"]: r for r in load_checked(d)[0]}
     ok_ids = {r["id"] for r in gate(rows.values(), audience)}
     problems = []
     cited = set()
@@ -401,6 +477,8 @@ def main(argv=None):
     a_add.add_argument("--checked")
     a_add.add_argument("--by", default="")
     a_add.add_argument("--from", dest="derived_from", default="", help="claim ids this number was computed from")
+    a_add.add_argument("--commitment", default="", choices=[""] + COMMITMENTS,
+                       help="for MEASURED demand: what the buyer did (paid, deposit, signed, booked, intro)")
     a_label = sub.add_parser("label")
     a_label.add_argument("ids", help="claim ids, like c07,c08")
     sub.add_parser("trace").add_argument("id", help="a claim id, like c09")
@@ -421,7 +499,8 @@ def main(argv=None):
         try:
             if not a.status and not a.derived_from:
                 raise LedgerError("give --status, or --from with the claim ids it was computed from")
-            r = add(a.dir, a.claim, a.kind, a.status, a.use, a.number, a.evidence, a.checked, a.by, a.derived_from)
+            r = add(a.dir, a.claim, a.kind, a.status, a.use, a.number, a.evidence, a.checked, a.by, a.derived_from,
+                    a.commitment)
         except LedgerError as e:
             print("refused: %s" % e, file=sys.stderr)
             return 1
@@ -452,7 +531,7 @@ def main(argv=None):
               % (s["claims"], b["MEASURED"], b["THEY SAID IT"], b["PLANNED"], b["SIMULATED"], s["demand_measured"]))
         return 0
     if a.cmd == "gate":
-        for r in gate(load(a.dir), a.audience):
+        for r in gate(load_checked(a.dir)[0], a.audience):
             print("[%s] %s | %s | %s%s" % (r["id"], r["status"], r["use"], r["claim"],
                                            (" (" + r["number"] + ")") if r["number"] else ""))
         return 0

@@ -48,7 +48,8 @@ Write down which.
 2. Add a row to `founder/evidence/evidence-log.md` (`e07 | Call notes, J. Doe,
    managing partner | call | 2026-11-04 | ASK FIRST`).
 3. Add the claims with `ledger.py add`, one per fact. Their past numbers are
-   `THEY SAID IT`. A yes to the ask is `MEASURED`, kind `demand`. Praise is
+   `THEY SAID IT`. A yes to the ask is `MEASURED`, kind `demand`, with
+   `--commitment` naming what they did (paid, deposit, signed, booked, intro). Praise is
    `THEY SAID IT`, kind `other`.
 4. Add the person to `founder/evidence/people.md` with whether you may name
    them.

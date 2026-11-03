@@ -79,7 +79,7 @@ class Workspace(unittest.TestCase):
 
     def test_the_plan_flags_a_stale_handoff(self):
         # burn-test ran while the price was a real sale; the sale claim is later corrected to a planned price
-        sale = ledger.add(self.d, "Pop-up pre-orders at $6.50", "demand", "MEASURED", "ANONYMISED", "62", "e01")
+        sale = ledger.add(self.d, "Pop-up pre-orders at $6.50", "demand", "MEASURED", "ANONYMISED", "62", "e01", commitment="paid")
         path = self.numbers(sources={"price": sale["id"]})
         ue.main([path, "--handoff", self.d])
         v, text = plan.compile_plan(self.d)
@@ -96,7 +96,7 @@ class Workspace(unittest.TestCase):
 
     def test_the_verdict_ignores_a_hand_edited_handoff(self):
         price = self.simulated_price()
-        ledger.add(self.d, "Pop-up pre-orders at $6.50", "demand", "MEASURED", "ANONYMISED", "62", "e01")
+        ledger.add(self.d, "Pop-up pre-orders at $6.50", "demand", "MEASURED", "ANONYMISED", "62", "e01", commitment="paid")
         path = self.numbers(sources={"price": price["id"]})
         ue.main([path, "--handoff", self.d])
         hp = os.path.join(self.d, "handoff", "06_burn-test.json")

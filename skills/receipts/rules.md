@@ -49,6 +49,23 @@ and "let me know when it's ready" are compliments: log them as `THEY SAID IT`,
 kind `other`, never `demand`. Only `MEASURED` demand moves the plan's verdict.
 "What did you pay last time you solved this?" beats "would you pay for this?"
 
+The ledger checks this in code, not only here:
+
+- A `MEASURED` demand claim names its commitment: `--commitment paid`,
+  `deposit`, `signed`, `booked` or `intro`. A signup, a waitlist, a follow, a
+  like or a download is none of them, so it is not a buyer; log it as
+  `MEASURED`, kind `other`.
+- Its number counts the buyers: "62", "2 of 5". A logged no is "0" or
+  "0 of 10". A blank, "not yet" or "zero" is refused.
+- A buyer needs its own evidence id. A computed claim cannot be a buyer.
+- A price is real only when a buyer paid it: a `MEASURED` price or sale claim
+  that names the price in `numbers.json`. "I would pay $6.50" is a compliment.
+- A computed claim may be shown to no wider audience than its most private
+  source (`PRIVATE` > `ASK FIRST` > `ANONYMISED` > `PUBLIC`).
+- Every tool reads the ledger through its checks. A claim that breaks a rule,
+  including one typed into `claims.csv` by hand, counts as `SIMULATED` until
+  it is fixed, and the plan lists it.
+
 ## 4. Lead with what kills it
 
 Every report opens with **The hard truth:** one or two plain sentences on the

@@ -27,10 +27,10 @@ class Ledger(unittest.TestCase):
 
     def test_measured_needs_evidence_that_exists(self):
         with self.assertRaises(ledger.LedgerError):
-            ledger.add(self.d, "3 firms paid", "demand", "MEASURED", "PUBLIC")
+            ledger.add(self.d, "3 firms paid", "demand", "MEASURED", "PUBLIC", commitment="paid")
         with self.assertRaises(ledger.LedgerError):
-            ledger.add(self.d, "3 firms paid", "demand", "MEASURED", "PUBLIC", evidence="e09")
-        r = ledger.add(self.d, "1 firm signed a pilot", "demand", "MEASURED", "ASK FIRST", "1", "e01")
+            ledger.add(self.d, "3 firms paid", "demand", "MEASURED", "PUBLIC", evidence="e09", commitment="paid")
+        r = ledger.add(self.d, "1 firm signed a pilot", "demand", "MEASURED", "ASK FIRST", "1", "e01", commitment="signed")
         self.assertEqual(r["id"], "c01")
 
     def test_simulated_and_planned_need_no_evidence(self):
@@ -56,25 +56,25 @@ class Ledger(unittest.TestCase):
         self.assertEqual(s["demand_measured"], 0)
         with open(os.path.join(self.d, "evidence", "claims.md"), encoding="utf-8") as fh:
             self.assertIn("No real buyer has paid, signed or booked yet", fh.read())
-        ledger.add(self.d, "1 firm signed a pilot", "demand", "MEASURED", "ASK FIRST", "1", "e01")
+        ledger.add(self.d, "1 firm signed a pilot", "demand", "MEASURED", "ASK FIRST", "1", "e01", commitment="signed")
         s = ledger.write_summary(self.d)
         self.assertEqual(s["demand_measured"], 1)
         with open(os.path.join(self.d, "evidence", "summary.json"), encoding="utf-8") as fh:
             self.assertEqual(json.load(fh)["by_status"]["MEASURED"], 1)
 
     def test_a_logged_no_is_not_a_commitment(self):
-        for n in ("0", "0 of 10", "none", "No"):
-            ledger.add(self.d, "Firms that agreed to a pilot", "demand", "MEASURED", "PUBLIC", n, "e01")
+        for n in ("0", "0 of 10", "00", "0 out of 5"):
+            ledger.add(self.d, "Firms that agreed to a pilot", "demand", "MEASURED", "PUBLIC", n, "e01", commitment="signed")
         s = ledger.summarise(ledger.load(self.d))
         self.assertEqual(s["demand_measured"], 0)
         self.assertEqual(s["demand_refusals"], 4)
-        ledger.add(self.d, "Firms that agreed to a pilot", "demand", "MEASURED", "PUBLIC", "1 of 10", "e01")
+        ledger.add(self.d, "Firms that agreed to a pilot", "demand", "MEASURED", "PUBLIC", "1 of 10", "e01", commitment="signed")
         self.assertEqual(ledger.summarise(ledger.load(self.d))["demand_measured"], 1)
 
     def test_gate_never_passes_simulated_or_private(self):
         ledger.add(self.d, "Panel buy rate", "demand", "SIMULATED", "PUBLIC", "90 of 100")
         ledger.add(self.d, "Our fee", "price", "PLANNED", "PRIVATE", "$750")
-        ledger.add(self.d, "Signed pilot", "demand", "MEASURED", "ASK FIRST", "1", "e01")
+        ledger.add(self.d, "Signed pilot", "demand", "MEASURED", "ASK FIRST", "1", "e01", commitment="signed")
         ledger.add(self.d, "Runs offline", "product", "PLANNED", "PUBLIC")
         rows = ledger.load(self.d)
         self.assertEqual([r["id"] for r in ledger.gate(rows, "public")], ["c04"])
