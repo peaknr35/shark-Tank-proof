@@ -92,3 +92,47 @@ because Y, so we changed Z" is trusted more than a perfect story.
   `opportunities/` file, so a skill reads only what the job needs.
 - **Private stays private.** If the folder is shared (a team workspace, a
   repo), keep `PRIVATE` originals out of it.
+
+## 10. A number takes the weakest label of anything it was computed from
+
+The break is at the handoff between skills. `/litmus` picks a price from the
+simulated buyers, `/burn-test` works out the margin from that price, and by the
+time `/kill-or-build` adds it all up the margin looks like a fact because it
+came out of a calculation. Arithmetic does not make a guess stronger.
+
+Strongest to weakest: `MEASURED` > `THEY SAID IT` > `PLANNED` > `SIMULATED`.
+
+- A computed number gets the **weakest** label of every input it used. A margin
+  from a simulated price and three quoted costs is `SIMULATED`. A break-even from
+  quoted costs and a planned opening schedule is `PLANNED`.
+- An input with no source is `PLANNED` (rule 6). A cited claim id that is not
+  in the ledger cannot vouch for anything: it counts as `SIMULATED`.
+- A what-if (`--price`, `--volume`) is at best `PLANNED`. It can lower a label,
+  never raise one.
+- Picking a round number inside a simulated range does not launder it. If the
+  panel informed the price, the price is computed from the panel.
+- A label moves up only when its weakest input does: a real buyer pays the
+  price, a supplier sends the quote. Log the new claim, point the handoff file
+  at it, and run the stage again.
+- A passing check that rests on a `SIMULATED` input can fail a plan but never
+  pass one, the same as the panel itself.
+
+### Every handoff carries its labels
+
+The skills work like the stages of a pipeline (Interpretable Context
+Methodology: each stage reads files, does one job, writes files the next stage
+reads, and a person can open and edit any of them in between). So the label
+travels in the handoff files, next to the number, where a person can see it:
+
+| handoff | file | how the label travels |
+| --- | --- | --- |
+| `/truth-serum` to `/litmus` | `panel/answers/` | always `SIMULATED` |
+| `/litmus` to `/burn-test` | `pricing-curve.md`, the price claim, `numbers.json` `sources.price` | the range prints its label; the price claim is logged `--from` the range claim, so it inherits it |
+| `/burn-test` to `/kill-or-build` | `numbers.json` (`sources`, item `claim`), `cfo.md` | `unit_economics.py` prints the label of every result and the input that set it |
+| `/kill-or-build` to the reader | `business-plan.md` | every check shows its label; a simulated pass caps the verdict at Unproven |
+| anything to the ledger | `claims.csv` `from` column | `ledger.py add --from c07,c08` takes the weakest label; `check` flags a leak |
+
+Each skill that hands a number on writes a short **handoff contract** in its
+SKILL.md: what it reads (with labels), what it does, what it writes (with
+labels). If a stage cannot say where a number's label came from, the number is
+`PLANNED` at best.

@@ -11,16 +11,22 @@ read only from here, so a guess can never turn into a fact on the way out.
              SIMULATED      a buyer panel, a board memo, any model output. Never proof.
     use      PUBLIC, ANONYMISED, ASK FIRST, PRIVATE
     kind     demand, price, cost, product, market, team, other
+    from     the claim ids a number was computed from. A computed claim takes the
+             WEAKEST status of its sources (rules.md, rule 10): a margin worked out
+             from a simulated price is SIMULATED, however clean the arithmetic.
 
 Files, all under <dir>/evidence/:
-    claims.csv        the ledger (id,claim,number,kind,status,use,evidence,checked,by)
+    claims.csv        the ledger (id,claim,number,kind,status,use,evidence,checked,by,from)
     evidence-log.md   one table row per original: | e01 | what | where from | date | use |
     claims.md         written by `summary`, grouped by status
     summary.json      written by `summary`, read by kill-or-build
 
     python3 ledger.py init                           # make founder/evidence, opportunities, outputs
     python3 ledger.py add --claim "3 firms paid a deposit" --kind demand --status MEASURED --use ANONYMISED --evidence e04
-    python3 ledger.py check                          # exit 1 if any claim breaks a rule
+    python3 ledger.py add --claim "Contribution per cup" --kind cost --use PRIVATE --number "$4.76" --from c07,c08
+                                                     # no --status: it takes the weakest label of c07 and c08
+    python3 ledger.py label c07,c08                  # the label a number computed from these would carry
+    python3 ledger.py check                          # exit 1 if any claim breaks a rule (including a label leak)
     python3 ledger.py summary                        # claims.md + summary.json
     python3 ledger.py gate --audience public         # what a pitch to this audience may use
     python3 ledger.py scan founder/outputs/2026-11-02-acme.md --audience public
@@ -37,8 +43,10 @@ import sys
 STATUSES = ["MEASURED", "THEY SAID IT", "PLANNED", "SIMULATED"]
 USES = ["PUBLIC", "ANONYMISED", "ASK FIRST", "PRIVATE"]
 KINDS = ["demand", "price", "cost", "product", "market", "team", "other"]
-FIELDS = ["id", "claim", "number", "kind", "status", "use", "evidence", "checked", "by"]
+FIELDS = ["id", "claim", "number", "kind", "status", "use", "evidence", "checked", "by", "from"]
 NEEDS_EVIDENCE = ("MEASURED", "THEY SAID IT")
+# Strongest first. A number computed from several others takes the weakest of their labels.
+STRENGTH = {"MEASURED": 3, "THEY SAID IT": 2, "PLANNED": 1, "SIMULATED": 0}
 AUDIENCES = {  # which use labels each audience may see
     "public": ["PUBLIC"],
     "anonymised": ["PUBLIC", "ANONYMISED"],
@@ -75,6 +83,30 @@ work and tells you what happened is a real case study.
 
 class LedgerError(Exception):
     pass
+
+
+def weakest(statuses):
+    """The weakest label in statuses (rules.md, rule 10). Anything unknown counts as SIMULATED."""
+    statuses = list(statuses)
+    if not statuses:
+        return None
+    return min(statuses, key=lambda s: STRENGTH.get(s, -1)) if all(s in STRENGTH for s in statuses) else "SIMULATED"
+
+
+def split_ids(text):
+    return [x for x in re.split(r"[ ;,]+", text or "") if x]
+
+
+def derived_status(rows_by_id, ids):
+    """(status, weakest_ids, missing_ids) for a number computed from these claims.
+
+    A source that is not in the ledger cannot vouch for anything, so it counts as SIMULATED.
+    """
+    ids = split_ids(ids) if isinstance(ids, str) else list(ids)
+    missing = [i for i in ids if i not in rows_by_id]
+    labels = {i: (rows_by_id[i]["status"] if i in rows_by_id else "SIMULATED") for i in ids}
+    st = weakest(labels.values())
+    return st, [i for i in ids if labels[i] == st], missing
 
 
 def _ev_dir(d):
@@ -129,23 +161,48 @@ def _next_id(rows):
     return "c%02d" % (max(nums) + 1 if nums else 1)
 
 
-def add(d, claim, kind, status, use, number="", evidence="", checked=None, by=""):
-    row = {"id": "", "claim": claim, "number": number, "kind": kind, "status": status, "use": use,
-           "evidence": evidence, "checked": checked or datetime.date.today().isoformat(), "by": by}
-    problems = problems_for(row, evidence_ids(d))
+def _header(d):
+    path = _claims_path(d)
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8", newline="") as fh:
+        return next(csv.reader(fh), [])
+
+
+def add(d, claim, kind, status, use, number="", evidence="", checked=None, by="", derived_from=""):
+    """Log one claim. With derived_from (claim ids) and no status, the status is the weakest of the sources.
+
+    A status stronger than the weakest source is refused: that is the label leak rule 10 stops.
+    """
+    rows = load(d)
+    by_id = {r["id"]: r for r in rows}
+    derived_from = ",".join(split_ids(derived_from))
+    if derived_from:
+        floor, weak_ids, _ = derived_status(by_id, derived_from)
+        if not status:
+            status = floor
+    row = {"id": "", "claim": claim, "number": number, "kind": kind, "status": status or "", "use": use,
+           "evidence": evidence, "checked": checked or datetime.date.today().isoformat(), "by": by,
+           "from": derived_from}
+    problems = problems_for(row, evidence_ids(d), by_id)
     if problems:
         raise LedgerError("; ".join(problems))
-    rows = load(d)
     row["id"] = _next_id(rows)
     if not os.path.exists(_claims_path(d)):
         init(d)
+    if _header(d) != FIELDS:  # an older ledger without the "from" column: rewrite it with the new header
+        with open(_claims_path(d), "w", encoding="utf-8", newline="") as fh:
+            w = csv.DictWriter(fh, fieldnames=FIELDS)
+            w.writeheader()
+            w.writerows(rows)
     with open(_claims_path(d), "a", encoding="utf-8", newline="") as fh:
         csv.DictWriter(fh, fieldnames=FIELDS).writerow(row)
     return row
 
 
-def problems_for(r, ev_ids, today=None):
+def problems_for(r, ev_ids, rows_by_id=None, today=None):
     out = []
+    sources = split_ids(r.get("from", ""))
     if not r["claim"]:
         out.append("no claim text")
     if r["status"] not in STATUSES:
@@ -154,8 +211,17 @@ def problems_for(r, ev_ids, today=None):
         out.append("use %r is not one of %s" % (r["use"], ", ".join(USES)))
     if r["kind"] not in KINDS:
         out.append("kind %r is not one of %s" % (r["kind"], ", ".join(KINDS)))
+    if sources and rows_by_id is not None:
+        floor, weak_ids, missing = derived_status(rows_by_id, sources)
+        for m in missing:
+            out.append("computed from %s, which is not in the ledger" % m)
+        if r["status"] in STRENGTH and STRENGTH[r["status"]] > STRENGTH[floor]:
+            out.append("label leak: computed from %s (%s), so it can be at most %s, not %s"
+                       % (", ".join(weak_ids), floor, floor, r["status"]))
     if r["status"] in NEEDS_EVIDENCE:
-        if not r["evidence"]:
+        if not r["evidence"] and sources:
+            pass  # a computed claim carries the evidence of the claims it came from
+        elif not r["evidence"]:
             out.append("%s needs an evidence id from evidence-log.md" % r["status"])
         else:
             for e in re.split(r"[ ;,]+", r["evidence"]):
@@ -172,13 +238,14 @@ def check(d, today=None):
     """Return (errors, warnings), each a list of strings."""
     today = today or datetime.date.today()
     rows, ev = load(d), evidence_ids(d)
+    by_id = {r["id"]: r for r in rows}
     errors, warnings, seen = [], [], set()
     for r in rows:
         tag = r["id"] or "(no id)"
         if r["id"] in seen:
             errors.append("%s: duplicate id" % tag)
         seen.add(r["id"])
-        errors += ["%s: %s" % (tag, p) for p in problems_for(r, ev)]
+        errors += ["%s: %s" % (tag, p) for p in problems_for(r, ev, by_id)]
         try:
             age = (today - datetime.date.fromisoformat(r["checked"])).days
             if age > STALE_DAYS and r["status"] != "SIMULATED":
@@ -238,15 +305,16 @@ def write_summary(d):
         group = [r for r in rows if r["status"] == status]
         if not group:
             continue
-        L += ["## %s" % status.capitalize(), "", "| Id | Claim | Number | Kind | Use | Evidence | Checked |",
-              "|---|---|---|---|---|---|---|"]
+        L += ["## %s" % status.capitalize(), "", "| Id | Claim | Number | Kind | Use | Evidence | From | Checked |",
+              "|---|---|---|---|---|---|---|---|"]
         for r in group:
-            L.append("| %s | %s | %s | %s | %s | %s | %s |" % (
+            L.append("| %s | %s | %s | %s | %s | %s | %s | %s |" % (
                 r["id"], r["claim"].replace("|", "/"), r["number"].replace("|", "/"), r["kind"], r["use"],
-                r["evidence"] or "", r["checked"]))
+                r["evidence"] or "", r["from"] or "", r["checked"]))
         L.append("")
     L.append("_MEASURED and THEY SAID IT come from real people and real files. PLANNED is a goal. SIMULATED is a"
-             " model's opinion and never appears in a pitch as proof._")
+             " model's opinion and never appears in a pitch as proof. A claim with a From column was computed from"
+             " those claims and carries the weakest of their labels._")
     with open(os.path.join(_ev_dir(d), "claims.md"), "w", encoding="utf-8") as fh:
         fh.write("\n".join(L) + "\n")
     with open(os.path.join(_ev_dir(d), "summary.json"), "w", encoding="utf-8") as fh:
@@ -301,12 +369,15 @@ def main(argv=None):
     a_add = sub.add_parser("add")
     a_add.add_argument("--claim", required=True)
     a_add.add_argument("--kind", required=True, choices=KINDS)
-    a_add.add_argument("--status", required=True, choices=STATUSES)
+    a_add.add_argument("--status", choices=STATUSES, help="leave out with --from to take the weakest source label")
     a_add.add_argument("--use", required=True, choices=USES)
     a_add.add_argument("--number", default="")
     a_add.add_argument("--evidence", default="")
     a_add.add_argument("--checked")
     a_add.add_argument("--by", default="")
+    a_add.add_argument("--from", dest="derived_from", default="", help="claim ids this number was computed from")
+    a_label = sub.add_parser("label")
+    a_label.add_argument("ids", help="claim ids, like c07,c08")
     sub.add_parser("check")
     sub.add_parser("summary")
     a_gate = sub.add_parser("gate")
@@ -322,11 +393,19 @@ def main(argv=None):
         return 0
     if a.cmd == "add":
         try:
-            r = add(a.dir, a.claim, a.kind, a.status, a.use, a.number, a.evidence, a.checked, a.by)
+            if not a.status and not a.derived_from:
+                raise LedgerError("give --status, or --from with the claim ids it was computed from")
+            r = add(a.dir, a.claim, a.kind, a.status, a.use, a.number, a.evidence, a.checked, a.by, a.derived_from)
         except LedgerError as e:
             print("refused: %s" % e, file=sys.stderr)
             return 1
-        print("%s %s / %s: %s" % (r["id"], r["status"], r["use"], r["claim"]))
+        print("%s %s / %s: %s%s" % (r["id"], r["status"], r["use"], r["claim"],
+                                    (" (from %s)" % r["from"]) if r["from"] else ""))
+        return 0
+    if a.cmd == "label":
+        st, weak_ids, missing = derived_status({r["id"]: r for r in load(a.dir)}, a.ids)
+        print("%s, set by %s%s" % (st, ", ".join(weak_ids),
+                                   ("; not in the ledger: %s" % ", ".join(missing)) if missing else ""))
         return 0
     if a.cmd == "check":
         errors, warnings = check(a.dir)

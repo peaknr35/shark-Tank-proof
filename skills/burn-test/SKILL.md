@@ -26,6 +26,32 @@ Tool in this folder:
 python3 "${CLAUDE_SKILL_DIR}/unit_economics.py" founder/numbers.json --out founder/cfo.md
 ```
 
+## Handoff contract
+
+The margin is only as real as the weakest number it was computed from (rule 10
+in `rules.md`). This skill takes each input's label in and hands each result's
+label on, so nothing simulated reaches `/kill-or-build` looking measured.
+
+**Inputs**
+
+| input | label comes from |
+| --- | --- |
+| `price` | `sources.price` in `numbers.json`: the price claim `/litmus` logged (`SIMULATED` if the panel picked it) or a real sale (`MEASURED`) |
+| each `variable`, `fixed_monthly`, `startup` item | its own `"claim": "c.."` (a quote or invoice is `MEASURED`) or `"status"` |
+| `plan_per_day`, `ramp_per_day`, `days_per_month`, `capacity_per_day` | `sources.<field>`; a ramp from the panel's buy rate is `SIMULATED` |
+| anything with no source | `PLANNED` |
+
+**Process:** run `unit_economics.py`. It looks every claim id up in
+`founder/evidence/claims.csv` and gives each result the weakest label of its
+inputs.
+
+**Outputs**
+
+| output | label |
+| --- | --- |
+| `founder/cfo.md` | opens with "How we know each number": every result, its label, and the input that set it |
+| the results you log in the ledger | `ledger.py add ... --from <the input claim ids>`, no `--status` |
+
 ## Step 1: gather the inputs
 
 Write `founder/numbers.json` (shape: `example.json` in this folder, a walk-in
@@ -55,6 +81,18 @@ Log each input in the ledger, kind `cost` (or `price` for the price): a quote,
 invoice, lease or published price page is `MEASURED` with its evidence id; an
 estimate is `PLANNED`. The plan reports how many costs are backed.
 
+Then write each claim id into `numbers.json`, so the label travels with the
+number:
+
+```json
+"price": 6.50,
+"sources": {"price": "c08", "ramp_per_day": "c11", "days_per_month": "PLANNED"},
+"variable": [{"label": "Matcha (ceremonial, 2g)", "cost": 0.92, "claim": "c04"}]
+```
+
+A source is a claim id, a status, or a list of them (the weakest wins). Leave
+it out and the number is `PLANNED`.
+
 Ask the user for anything only they know (rent quoted, wages they will pay). Use the
 price from `founder/pricing.md` or `founder/pitch.md` if those exist.
 
@@ -62,7 +100,8 @@ price from `founder/pricing.md` or `founder/pitch.md` if those exist.
 buyer panel ran, use its buy rate and first-month purchases to sanity-check the
 ramp (`founder/panel/results.md`), and say how you did it. The panel's numbers
 are an upper bound; if no real buyer has committed yet, the honest ramp is
-lower than the panel suggests, never higher.
+lower than the panel suggests, never higher. A ramp worked out from the panel
+is `SIMULATED`: say so in `sources.ramp_per_day`.
 
 ## Step 2: run it
 
@@ -91,7 +130,8 @@ Add a short section at the top of `founder/cfo.md`, in plain words:
 
 - **The hard truth**: the number most likely to sink it, and how many of the
   inputs are quotes versus estimates ("4 of 11 costs are quoted; the ramp is a
-  guess").
+  guess"). If the margin is `SIMULATED`, say which input made it so ("the
+  margin is SIMULATED because the price came from the panel [c08]").
 - **The bad case**: run `--volume 0.5` and report it in one line. If there is
   no real demand evidence yet, this is as likely as the plan.
 - **The margin**: the profit margin at plan, and the contribution per unit.
@@ -105,8 +145,17 @@ Add a short section at the top of `founder/cfo.md`, in plain words:
 ## Rules
 
 - Every number in your note comes from the tool's output or an input you can name.
-- Every output of the model (margin, break-even, year 1, payback) is
-  `PLANNED`. Never call a projected margin "the real margin" or a result.
+- Every output takes the weakest label of its inputs, as the tool prints it:
+  at best `PLANNED` for anything that uses the ramp or the plan volume, and
+  `SIMULATED` whenever a simulated input is under it. Never write a stronger
+  label than the tool printed, and never call a projected margin "the real
+  margin" or a result.
+- Log a result with `--from` and no `--status`, so the ledger works the label
+  out and refuses a leak:
+
+  ```bash
+  python3 "${CLAUDE_SKILL_DIR}/../receipts/ledger.py" add --claim "Contribution per cup" --kind cost --use PRIVATE --number "$4.76" --from c08,c04,c05
+  ```
 - Revenue is before tax; say if the user's market adds sales tax on top.
 - Not financial, tax or legal advice. Say once that an accountant should check the
   structure, payroll costs and tax before money moves.
