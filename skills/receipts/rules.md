@@ -103,8 +103,10 @@ came out of a calculation. Arithmetic does not make a guess stronger.
 Strongest to weakest: `MEASURED` > `THEY SAID IT` > `PLANNED` > `SIMULATED`.
 
 - A computed number gets the **weakest** label of every input it used. A margin
-  from a simulated price and three quoted costs is `SIMULATED`. A break-even from
-  quoted costs and a planned opening schedule is `PLANNED`.
+  from a simulated price and three quoted costs is `SIMULATED`. A year 1 profit
+  from quoted costs and a planned ramp is `PLANNED`. Break-even itself uses only
+  the price and the costs, so when the price is a real sale and every cost is
+  quoted, break-even is `MEASURED`.
 - An input with no source is `PLANNED` (rule 6). A cited claim id that is not
   in the ledger cannot vouch for anything: it counts as `SIMULATED`.
 - A what-if (`--price`, `--volume`) is at best `PLANNED`. It can lower a label,
