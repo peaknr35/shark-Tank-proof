@@ -114,9 +114,15 @@ file, so suggest accept-edits mode (Shift+Tab) for the run.
 2. Who buys and who doesn't: the segment and behaviour rows that differ most.
 3. Why they pass: the top three reasons with one quote each, as written.
 4. What would flip a no: the most repeated answers.
+4b. **The core worry or desire:** under the reasons they give, what the
+   buyers who pass seem to fear and the ones who buy seem to want (status, not
+   looking foolish, time back, money saved). One line each, labelled
+   simulated. This is a guess to check on real calls, not a finding.
 5. One sentence on what to change before spending money, and which skill does it
    (pricing, offer, marketing).
-6. **Take it to real people:** the top three objections turned into questions
+6. **Take it to real people:** the panel is a survey, and a survey tells you
+   what people say, not what they do. The real answer is a sale (Ready, Fire,
+   Aim, rule 11 in `rules.md`). Turn the top three objections into questions
    for real calls, in the style of `${CLAUDE_SKILL_DIR}/../receipts/conversations.md`
    (about their past, not your idea). That is the panel's real job.
 

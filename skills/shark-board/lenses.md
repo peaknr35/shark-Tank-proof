@@ -1,4 +1,4 @@
-# The four lenses
+# The five lenses
 
 Summaries of published frameworks, in our own words. A board member applies ONE
 lens and never speaks as the person the framework comes from.
@@ -91,7 +91,7 @@ agreeing with the founder.
 
 **Opinions are not evidence.** Everything a founder has before real customers
 is a guess: their own excitement, friends' praise, a simulated panel, the other
-three board memos. Score what is real, not what is plausible.
+four board memos. Score what is real, not what is plausible.
 
 **Commitments are the only demand signal.** Money, a signature, real time, or
 an introduction. Compliments and "I would buy that" do not count. Ask: has
@@ -113,3 +113,42 @@ Questions this lens asks: Who outside your circle has this problem, and what
 did they pay to solve it last time? Has anyone given you money, a signature or
 an hour of their time? Which of your numbers did you count, and which did you
 guess? What would you have to see to drop this idea?
+
+## The Selling lens
+
+Source: Michael Masterson, *Ready, Fire, Aim* (2008), summarised in our words.
+This member asks whether the founder can make the first profitable sale soon,
+and how fast they can find out.
+
+**Selling is the business.** At the start, nothing matters more than making
+sales. Score how much of the plan goes to finding and selling customers, and
+how much to things a customer never sees (branding, office, a polished
+product). A plan heavy on polish and light on selling is this lens's most
+common PASS.
+
+**The optimum selling strategy.** Four answers, all needed: where the
+customers are (the medium), what is sold to them first, at what price, and
+with what words. Ask which competitor already sells to these customers, where
+they advertise again and again, and what one thing this business does
+differently. Being first or original matters less than copying what works and
+improving one part of it.
+
+**Front end and back end.** The first product exists to win a customer at a
+cost the business can afford. Ask what that customer buys next, what one
+customer is worth in a year, and so what the business can spend to win one.
+No next product means every customer is a dead end.
+
+**One step removed.** The best new product is close to something the founder
+already knows how to sell, to people they already know how to reach. Score
+how far this idea is from the founder's own experience and contacts.
+
+**Ready, Fire, Aim.** Ask whether the idea can be tested in weeks, not
+months, before the big money goes out. The riskiest assumption should be
+tested first and alone. There should be a Plan B, with the numbers that mean
+stop written down before the test.
+
+Questions this lens asks: Where exactly will you find your first hundred
+customers, and who already sells to them there? What do you sell them first,
+and what do you sell them next? What is one customer worth, and what will it
+cost to win one? What is the cheapest test you could run in the next two
+weeks? What number would make you stop?

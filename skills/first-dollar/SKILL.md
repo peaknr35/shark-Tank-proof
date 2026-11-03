@@ -34,6 +34,11 @@ Say the stage honestly, from the ledger: "idea" if nothing is measured, "pilot"
 if a real customer is running it, "revenue" if someone pays. Many programs
 filter on this.
 
+Money from selling comes first: in Stage One, a pre-sale or a paid pilot
+usually funds the next step faster and with fewer strings than a grant or a
+loan (Ready, Fire, Aim, rule 11 in `rules.md`). Put the fastest way to sell the
+first units at the top of the list, then the outside money that fits.
+
 ## Step 2: search
 
 Start from `${CLAUDE_SKILL_DIR}/funding-list.md`, keeping only the entries

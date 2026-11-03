@@ -100,6 +100,13 @@ Write `founder/pricing.md`:
    from it. No one has paid it yet."
 1. **The price**, and why: where it sits in the acceptable range, against the
    competitors, and the margin it gives (from the tool, not a guess).
+   **Front end or back end:** say which this price is for. The first product
+   exists to win customers (Ready, Fire, Aim, rule 11 in `rules.md`): when testing
+   its price, lean towards the lower end of the range, because more customers
+   sooner usually beats more margin per first sale, as long as the price stays
+   above the variable cost and what a customer is worth covers what it costs
+   to win one (`/burn-test`, "What one customer is worth"). Higher prices
+   belong to the later products sold to customers who already trust you.
 2. **The ladder**, if the business can have one: a good / better / best (size,
    bundle, subscription, membership) with a reason to step up each rung.
 3. **The opening offer**: an intro price or bonus for launch that does not train

@@ -52,6 +52,27 @@ One row per competitor in `founder/competitors.csv`:
 `positioning_line` is their own headline or tagline, copied. Price is for the item
 closest to what the new business sells, with what it includes.
 
+## Step 2b: how they sell
+
+A competitor's selling strategy is the fastest lesson a new business can get
+(Ready, Fire, Aim, rule 11 in `rules.md`): copy what works, then be different in
+one thing. For the top 3 to 5, from public sources, record in
+`founder/competitors.md`:
+
+- **Where** they find customers: the ads, lists, searches, shelves, partners
+  and channels they show up in. An ad a competitor keeps running for months is
+  probably making money; note how long each has run when you can see it (ad
+  libraries, dated posts, archived pages).
+- **What** they sell first: their entry product or offer (a sample, a trial, a
+  starter kit, a first-visit deal), and what they try to sell next.
+- **At what price** they win a first customer, and what it rises to.
+- **With what words**: their main promise and the proof they show.
+
+If the founder can, suggest a 15-minute call with someone who markets for a
+company in the same field (not a direct rival): how they find customers, what
+the first sale is, what a customer is worth. Log what they say as `THEY SAID
+IT` with the call note as evidence.
+
 ## Step 3: what their customers say
 
 For the top 3 to 5, read their reviews (1 to 3 stars first, then the "love it,
@@ -74,6 +95,9 @@ Write `founder/competitors.md`:
    this skill can give. A gap is a hypothesis: nobody doing it may mean nobody
    will pay for it. Name the real-buyer question that would tell.
 6. The threat: who could copy the new business fastest, and how.
+7. **The selling strategy to copy:** the medium, first product, entry price
+   and main promise most competitors share (the industry norm), and the one
+   element this business could do differently. Mark it `PLANNED` until tested.
 
 ## Output
 

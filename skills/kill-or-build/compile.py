@@ -114,6 +114,9 @@ def verdict(d, min_buy_rate=0.25):
             fits = not math.isinf(be) and be <= float(cap)
             money(fits, "Break-even is %s %ss a day against a capacity of %s." % (
                 "never reached" if math.isinf(be) else "{:,.0f}".format(math.ceil(be)), u, cap), "fits_capacity")
+        if numbers["acquisition_cost"] is not None:
+            money(numbers["acquisition_fits"], "Winning a customer costs $%.2f against the $%.2f one is worth in year 1." % (
+                numbers["acquisition_cost"], numbers["allowable_acquisition_cost"]), "acquisition_fits")
     raw = _read(os.path.join(d, "panel", "results.json"))
     if raw:
         panel = json.loads(raw)

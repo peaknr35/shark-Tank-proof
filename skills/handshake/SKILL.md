@@ -76,6 +76,11 @@ lining up".
    Write `PLANNED` claims as goals ("we expect", "the pilot will test"), never
    as results.
 4. A short **What could go wrong** section in plain words. Receivers trust it.
+4b. Check the pitch stands on four legs (Ready, Fire, Aim, rule 11 in `rules.md`):
+   one big idea, the big benefit to this receiver (about them, not you), one
+   big promise joining the two, and proof. The proof leg comes only from the
+   claims `gate` printed; with no `MEASURED` proof, the promise is the pilot's
+   terms ("if it does not hit the line we set together, you owe nothing").
 5. **Gaps**: what this pitch would need to be stronger, and the cheapest way to
    get each.
 

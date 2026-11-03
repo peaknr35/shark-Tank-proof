@@ -53,6 +53,13 @@ Give three versions, recommend one, and say which panel evidence supports it.
 
 ## Step 3: channels
 
+Where comes before what. A plain ad in the place the buyers already are beats
+a brilliant one in the wrong place (Ready, Fire, Aim, rule 11 in `rules.md`). Start
+from where competitors keep advertising (`founder/competitors.md`, "how they
+sell"): copy the medium that works, then be different in one thing. Do not
+spend on making the company known (a brand campaign, a brochure, a launch
+party); sell the product.
+
 List where the first audience actually spends attention, specific to the business
 type and place: foot traffic and window signage, Google Maps, Instagram and TikTok,
 local creators, neighbourhood groups, partnerships with nearby businesses, email,
@@ -67,14 +74,23 @@ plus 16: what goes out each day, on which channel, with the message. Include:
 - **Ten hooks**, each answering one panel objection or using one buyer reason,
   written for the format (a 3-second opening line for video, a headline for an ad,
   a sign in the window).
+- **The main ad on four legs**: one **big idea** (a single idea, not five),
+  the **big benefit** to the buyer (about them, not the company), the **big
+  promise** that joins the two in one line, and the **proof**. Proof comes
+  only from claims `ledger.py gate --audience public` prints; if there is
+  none yet, the ad says what the buyer can try at no risk instead of
+  claiming results.
+- **Two versions to test against each other** in week one (two headlines,
+  two offers or two prices), with the number that picks the winner.
 - The launch-week offer from `founder/pricing.md` and when it ends.
 - What to post when there is nothing new to say (behind the scenes, the making of).
 
 ## Step 5: budget and numbers
 
 - The budget split across the chosen channels.
-- The most you can pay to win a customer: from the CFO's contribution per unit and
-  the panel's purchases per buyer, show the sum.
+- The most you can pay to win a customer: "What one customer is worth" in
+  `founder/cfo.md` (first order plus the back end). Give marketing one target:
+  a number of new customers by a date, each won for less than that.
 - The three numbers to watch weekly and the level that means "change something".
   Write the kill line too: the number after 30 days that means the channel, or
   the idea, is not working.
@@ -86,6 +102,8 @@ plus 16: what goes out each day, on which channel, with the message. Include:
 - A result the business has not delivered yet ("3x faster", "save 15 hours")
   goes in copy as a promise or a goal with its terms, never as a result.
   Nothing `PLANNED` or `SIMULATED` is written as proof.
+- Treat buyers the way you would want to be treated: no pressure, no tricks,
+  no talking about them as targets.
 - Disclose paid partnerships. Follow the advertising rules for claims in the user's
   market (health and earnings claims especially). Not legal advice.
 

@@ -26,8 +26,12 @@ when a real person does something: pays, signs, books, or says no.
   signed or booked, the verdict is **Unproven**. A simulated panel can fail a
   plan but never pass one.
 - **Every report opens with the hard truth:** the most likely reason it fails.
-- **The board has four members**, and the Evidence lens never votes to fund
+- **The board has five members**, and the Evidence lens never votes to fund
   without real proof.
+- **Sell first, test fast, perfect later** (after *Ready, Fire, Aim*). Every
+  skill knows the business's stage, aims at the first profitable sale, and
+  tests the riskiest assumption first, with a Plan B and a stop line set
+  before the test.
 - **A number takes the weakest label of anything it was computed from.** A
   margin worked out from a price the simulated panel picked is `SIMULATED`,
   however clean the arithmetic, so it cannot pass the plan by the time
@@ -41,7 +45,7 @@ when a real person does something: pays, signs, books, or says no.
 | command | job | what it does |
 | --- | --- | --- |
 | `/receipts` | Evidence keeper | The ledger every skill writes to. Logs real calls, deposits, pilots and refusals, audits what is real versus guessed, and lists the gaps. Keeps one story file per project: the problem before, who did what, where it broke. No receipt, no claim. |
-| `/shark-board` | Board of directors | Four members, each a sub-agent applying one published framework (Offers, Monopoly, Product, Evidence), find what would kill the idea, the cheapest test for each, and vote. |
+| `/shark-board` | Board of directors | Five members, each a sub-agent applying one published framework (Offers, Monopoly, Product, Selling, Evidence), find what would kill the idea, the cheapest test for each, and vote. |
 | `/ground-truth` | Competitor scout | Direct competitors, indirect ones and substitutes from public sources, with prices and what their customers complain about, every fact linked. |
 | `/truth-serum` | Consumer panel | A swarm of simulated buyers (100 by default) told not to be polite. Surfaces objections and turns them into questions for real calls. Simulated, never proof. |
 | `/litmus` | Pricing | A price range from the panel's answers, set against competitors and the margin, plus the real test that settles it. |
@@ -97,6 +101,17 @@ What a run looks like, honestly:
    first time.
 
 ## What's new
+
+- **Ready, Fire, Aim across the pack.** Rule 11: know the stage, sell first,
+  find the optimum selling strategy (where the customers are, what they buy
+  first, at what price, with what words), answer seven questions before a
+  test, keep the plan to four pages, fire when it is good rather than perfect,
+  and improve only what sells. The board gains a Selling lens. `/burn-test`
+  works out what one customer is worth (first order plus the back end) and so
+  the most you can spend to win one, and `/kill-or-build` checks the real cost
+  against it. `/ground-truth` maps how competitors sell, `/signal` builds the
+  main ad on four legs (big idea, big benefit, big promise, proof from the
+  ledger), and `/prove-it` opens with the seven questions.
 
 - **Labels travel through the math.** The break used to be at the handoff
   between skills: `/litmus` set a price from the simulated buyers, `/burn-test`
@@ -189,11 +204,13 @@ python3 -m unittest discover -s tests -v
 is a description of what the board does. If you publish or sell this pack,
 check the name with a trademark lawyer first.
 
-**The board applies published frameworks. It is not those people.** The four
+**The board applies published frameworks. It is not those people.** The five
 lenses are short summaries, in our words, of ideas from *$100M Offers* by Alex
 Hormozi, *Zero to One* by Peter Thiel with Blake Masters, Walter Isaacson's
-biography of Steve Jobs, and *The Mom Test* by Rob Fitzpatrick. The board
-never speaks as them, quotes them or claims they endorse anything.
+biography of Steve Jobs, *Ready, Fire, Aim* by Michael Masterson, and *The Mom
+Test* by Rob Fitzpatrick. The board never speaks as them, quotes them or claims
+they endorse anything. Rule 11 and the selling advice across the pack are
+likewise our own summary of ideas from *Ready, Fire, Aim*.
 
 **The consumer panel is simulated buyers, not customers.** It finds objections
 and questions. It never counts as demand and never appears in a pitch as proof.

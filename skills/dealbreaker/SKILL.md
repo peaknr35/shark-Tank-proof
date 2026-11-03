@@ -63,12 +63,22 @@ CFO's numbers). Keep high value, low cost. Stack what is left into:
 - **Urgency and scarcity**: only if they are true (a launch week, a limited first
   batch). Never fake a countdown or a "only 3 left".
 - **The name**: a clear, specific name for the offer, not the company.
+- **The next sale** (no dead ends, Ready, Fire, Aim, rule 11 in `rules.md`): what a
+  buyer of this offer is most likely to want next (a refill, an upgrade, a
+  membership, the next service), and the easiest way to keep buying (a
+  subscription they can cancel any time, a standing order). Put its expected
+  value in `founder/numbers.json` as `backend_per_customer` (`PLANNED` until
+  someone buys it), so `/burn-test` can work out what a customer is worth.
 
 ## Step 4: score it
 
 On the value equation, before and after, 1 to 10 each: dream outcome, perceived
 likelihood of getting it, time to the result, effort and sacrifice. Say which
 element of the stack moves which score.
+
+Say why the buyer buys: to feel good, or to solve a problem. For a problem,
+put the result in money or time saved ("each one saves you 30 minutes a week"),
+from a real or planned number with its label.
 
 Be strict on likelihood: with no `MEASURED` results, a buyer has only the
 founder's word. Likelihood is low until there is a case, a quote or a demo on

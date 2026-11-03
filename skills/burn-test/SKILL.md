@@ -75,6 +75,9 @@ matcha café). It needs:
 | `plan_per_day` | the volume once it is up and running |
 | `ramp_per_day` | 12 numbers: realistic volume in each month of year 1 |
 | `capacity_per_day` | the most you can physically sell in a day, if there is a limit |
+| `units_per_customer` | units in a new customer's first order (default 1) |
+| `backend_per_customer` | what a customer leaves after costs from what they buy next, in their first year (from `/dealbreaker`'s next sale; default 0) |
+| `acquisition_cost` | what it costs now to win one customer: ad or outreach spend divided by the customers it brought in (only once you have run a test) |
 
 Where the numbers come from, in this order:
 
@@ -146,6 +149,10 @@ Add a short section at the top of `founder/cfo.md`, in plain words:
 - **The line to watch**: the one cost or assumption that moves the result most
   (usually the ramp, rent or the price), with the what-if that proves it.
 - **Cash**: how much money the founder needs before it pays for itself.
+- **What a customer is worth** (Ready, Fire, Aim, rule 11 in `rules.md`): the most
+  the business can spend to win one customer, from the tool, and what it
+  costs now if a test has run. If no next product is planned, say so: the
+  first sale then has to pay for everything, which is the hardest way to grow.
 - **Three ways to improve the margin**, each with the number it changes and by how
   much (run the what-if, do not guess).
 - Whether the board's conditions about money (`founder/board.md`) are met.

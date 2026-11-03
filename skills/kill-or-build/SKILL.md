@@ -108,6 +108,12 @@ truth:** the single most likely reason this fails.
   labelled as simulated.
 - The biggest risk and what will be done about it.
 - What the founder needs to start (cash from the CFO, the first test from launch).
+- The stage (Stage One unless yearly sales say otherwise) and what that
+  stage asks of the founder now: in Stage One, selling the first product,
+  most of their time on finding customers.
+- The selling strategy in four lines: where the customers are, what they buy
+  first, at what price, with what words, each with its label.
+- What a customer is worth and what it costs to win one (from `cfo.md`).
 - The one thing to do this week.
 
 If the verdict is Not yet, the summary leads with what has to change and which skill
@@ -125,6 +131,15 @@ writes `founder/business-plan.md`: title, the verdict and its checks, the key nu
 table, the idea, then every section the pack produced (summary, board, competition,
 panel, pricing, offer, numbers, marketing, brand, operations, launch), and what is
 not done yet.
+
+## Step 3b: the Ready, Fire, Aim answers
+
+Rule 11 in `rules.md` (after Michael Masterson's *Ready, Fire, Aim*).
+
+At the end of `founder/summary.md`, answer the seven questions from `/prove-it`
+step 0 (good idea, feels right, feasible, affordable to test, tasks known,
+people, Plan B) in one line each, from what the folder holds. A question the
+folder cannot answer is the next job, not a pass.
 
 ## Step 4: the one-pager
 

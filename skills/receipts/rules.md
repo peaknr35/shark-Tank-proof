@@ -142,3 +142,64 @@ Each skill that hands a number on writes a short **handoff contract** in its
 SKILL.md: what it reads (with labels), what it does, what it writes (with
 labels). If a stage cannot say where a number's label came from, the number is
 `PLANNED` at best.
+
+## 11. Ready, Fire, Aim: sell first, test fast, perfect later
+
+From Michael Masterson's *Ready, Fire, Aim* (2008), in our words. The pack
+tests ideas hard; this rule keeps the testing fast and pointed at the one thing
+a new business has to learn first: how to make the first sale profitably.
+
+**Know the stage.** A business under about $1 million a year (Stage One,
+"infancy") has one job: sell one product. Its main problem is that the founder
+does not yet know what works. Later stages are about many products, then
+systems and managers, then acting as an investor. Every report says which stage
+the business is in and keeps advice to that stage. Most of this pack is Stage
+One work.
+
+**Selling comes first.** In Stage One, most of the founder's time and money go
+to finding customers and making sales, not to the logo, the office, the
+website polish or the perfect product. Spend nothing on what a customer never
+sees until something sells.
+
+**Find the optimum selling strategy (OSS).** Four questions, all four
+answered, in this order of importance:
+
+1. **Where** are the customers? (the medium: the list, the street, the search,
+   the channel). A weak ad in the right place beats a great ad in the wrong one.
+2. **What** do you sell them first? (the front-end product, which buys a
+   customer, not a fortune)
+3. **What price?** (for the first sale, lean low enough to win customers fast,
+   never below what the CFO says one is worth)
+4. **What words?** (the copy and the offer that convince them)
+
+Start by copying what works for the competitors who keep buying the same ads,
+and be different in one thing only: a medium you can own, a price structure,
+or a selling proposition buyers want. Then test away from it.
+
+**The first sale buys a customer; the back end pays.** Know what one customer
+is worth (the first order plus what they buy after), and so the most you can
+spend to win one (`/burn-test`, "What one customer is worth"). Every first
+product has a next product. No dead ends.
+
+**Ready.** Before spending real money on a new product or test, answer seven
+questions in writing: Is it a good idea? Does it feel like one? Is it
+economically feasible? Can I afford to test it? Do I know what has to be done?
+Do I have the people? What is Plan B? Keep the plan to four pages at most:
+rough numbers, critical tasks, one named owner, dates, and Plan B. Have it
+done in a day, not a month.
+
+**Fire.** Launch when it is good, not when it is perfect. Test the riskiest
+single assumption first and on its own, as cheaply as possible: a pre-sale, a
+landing page with a price, a similar product sold with your angle, a pilot.
+Let a real buyer's action decide, not a survey or a panel.
+
+**Aim.** Improve only what has proven it sells. Then keep improving it on a
+schedule, because a product that stops getting better starts getting worse.
+
+**Plan B is a stop-loss.** Set the numbers before the test that mean stop or
+change course (`/prove-it`'s kill line). Some ideas will fail; attach your
+confidence to the process, not to any one idea.
+
+**Speed never overrides the labels.** Moving fast means testing sooner, not
+counting a guess as a result. A test that has not run is `PLANNED`; a panel is
+`SIMULATED`; only a real buyer's action is `MEASURED` (rules 1 to 10).

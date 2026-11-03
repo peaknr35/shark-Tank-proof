@@ -46,7 +46,8 @@ and nothing is registered until the user registers it.
 
 ## Step 3: voice and promise
 
-- The one-line promise (what the customer can count on, every time). It must
+- The one-line promise (what the customer can count on, every time), built
+  from one big idea and one big benefit to the buyer, not a list. It must
   be something the business can deliver on day one, from `founder/ops.md`.
   If it rests on a `PLANNED` claim, say so and offer a promise it can keep now.
 - A tagline, three options.
@@ -72,6 +73,10 @@ and nothing is registered until the user registers it.
   cannot back for a public audience.
 - Spend little on brand before a real buyer has paid. A name and a clean page
   are enough to run the first test; say so if the founder wants more first.
+  In Stage One the job is selling the product, not making the company known
+  (Ready, Fire, Aim, rule 11 in `rules.md`). Do the brand in two passes: the
+  minimum to sell now (name, one promise, a plain page or sign), and the rest
+  after the first sales show which promise buyers respond to.
 - No fonts, images or icons the user has no right to use.
 - Not legal advice on trademarks.
 

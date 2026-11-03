@@ -51,6 +51,11 @@ reorder. Each fits on one page someone could follow on their first day.
 
 ## Step 5: tools
 
+Until something sells, spend on what a customer sees and nothing else (Ready,
+Fire, Aim, rule 11 in `rules.md`): borrow, rent, buy second-hand or start from a
+kitchen table. Do not buy stock or equipment for the plan volume before the
+first test has met its success line; order for the test.
+
 The smallest stack that runs it: payments, point of sale or store, scheduling,
 bookkeeping, inventory. Real products with their published prices, and why each.
 

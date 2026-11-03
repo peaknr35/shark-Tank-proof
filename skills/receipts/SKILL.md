@@ -111,6 +111,10 @@ compare what they need to see (`${CLAUDE_SKILL_DIR}/../handshake/receivers.md`) 
 measured number, a quote with permission, a pilot, a partner, a registration.
 For each, the cheapest way to get it this week and who could help.
 
+When you list the gaps (job 3 or 4), put first the gap that blocks the first
+sale: where the customers are, what they buy first, at what price, or what
+words make them buy (Ready, Fire, Aim, rule 11 in `rules.md`).
+
 ## Rules
 
 - Never upgrade a status without a new original in `evidence/`. A claim moves

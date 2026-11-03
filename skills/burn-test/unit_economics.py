@@ -27,6 +27,11 @@ The input (see example.json in this folder):
     plan_per_day      the volume you plan for once you are up and running
     ramp_per_day      12 numbers: units a day in each month of year 1
                       (optional; default = plan_per_day every month)
+    units_per_customer   units in a new customer's first order (default 1)
+    backend_per_customer what a customer leaves after costs from later
+                      purchases in their first year (default 0: none known)
+    acquisition_cost  what it costs today to win one new customer: ad spend
+                      divided by the customers it brought in (optional)
     sources           where each top-level number came from, so its label can
                       travel: {"price": "c07", "ramp_per_day": "PLANNED"}. A value
                       is a ledger claim id, a status, or a list of either (the
@@ -73,13 +78,20 @@ DEPENDS = {
     "cash_needed": ["price", "variable", "fixed_monthly", "days_per_month", "ramp_per_day", "startup"],
     "payback_month": ["price", "variable", "fixed_monthly", "days_per_month", "ramp_per_day", "startup"],
     "fits_capacity": ["price", "variable", "fixed_monthly", "days_per_month", "capacity_per_day"],
+    # The most you can spend to win a customer: what the first order leaves plus what the back end adds
+    # (after Ready, Fire, Aim's allowable acquisition cost). The first sale buys a customer; the back end pays.
+    "allowable_acquisition_cost": ["price", "variable", "units_per_customer", "backend_per_customer"],
+    "acquisition_fits": ["price", "variable", "units_per_customer", "backend_per_customer", "acquisition_cost"],
 }
 RESULT_NAMES = {
     "contribution": "Contribution per unit", "breakeven_per_day": "Break-even a day",
     "margin_at_plan": "Profit margin at plan", "year1_profit": "Year 1 operating profit",
     "cash_needed": "Cash needed", "payback_month": "Startup money earned back",
     "fits_capacity": "Break-even inside capacity",
+    "allowable_acquisition_cost": "Most you can spend to win a customer",
+    "acquisition_fits": "Winning a customer costs less than that",
 }
+OPTIONAL = ("fits_capacity", "acquisition_fits")  # only reported when their input was given
 
 
 STAGE = "06_burn-test"
@@ -166,7 +178,8 @@ def input_labels(spec, ledger=None, what_if=None):
         if name in sources:
             pairs += _resolve(sources[name], ledger, name, warnings)
         labels[name] = _weakest(pairs or [("PLANNED", "%s (no source)" % name)])
-    for name in ("price", "days_per_month", "plan_per_day", "ramp_per_day", "capacity_per_day"):
+    for name in ("price", "days_per_month", "plan_per_day", "ramp_per_day", "capacity_per_day",
+                 "units_per_customer", "backend_per_customer", "acquisition_cost"):
         if name in sources:
             labels[name] = _weakest(_resolve(sources[name], ledger, name, warnings))
         elif name == "ramp_per_day" and "ramp_per_day" not in spec and "plan_per_day" in labels:
@@ -261,6 +274,12 @@ def analyse(spec, price=None, volume=1.0, ledger=None, what_if=None):
     lowest = min([-startup] + [m["cumulative"] for m in months])
     cash_needed = -lowest
 
+    units_first = float(spec.get("units_per_customer", 1))
+    backend = float(spec.get("backend_per_customer", 0))
+    allowable = contribution * units_first + backend
+    acquisition = spec.get("acquisition_cost")
+    acquisition = None if acquisition is None else float(acquisition)
+
     capacity = spec.get("capacity_per_day")
     flags = []
     if contribution <= 0:
@@ -273,6 +292,9 @@ def analyse(spec, price=None, volume=1.0, ledger=None, what_if=None):
         flags.append("Year 1 loses money on operations (%s)." % _whole(year_profit))
     if payback_month is None:
         flags.append("The startup spend is not earned back within year 1.")
+    if acquisition is not None and acquisition > allowable:
+        flags.append("Winning a customer costs %s but one is worth at most %s in year 1: every new customer loses money."
+                     % (_money(acquisition), _money(allowable)))
 
     inputs, label_warnings = input_labels(spec, ledger, what_if)
     return {
@@ -287,6 +309,9 @@ def analyse(spec, price=None, volume=1.0, ledger=None, what_if=None):
         "cash_needed": cash_needed, "months": months, "flags": flags,
         "variable_items": spec.get("variable", []), "fixed_items": spec.get("fixed_monthly", []),
         "startup_items": spec.get("startup", []),
+        "units_per_customer": units_first, "backend_per_customer": backend,
+        "allowable_acquisition_cost": allowable, "acquisition_cost": acquisition,
+        "acquisition_fits": None if acquisition is None else acquisition <= allowable,
     }
 
 
@@ -314,7 +339,7 @@ def handoff(a):
         "stage": STAGE, "business": a["business"], "unit": a["unit"],
         "inputs": a["inputs"],
         "results": {k: {"value": values[k], "status": a["labels"][k]["status"], "set_by": a["labels"][k]["weakest"]}
-                    for k in DEPENDS if not (k == "fits_capacity" and cap is None)},
+                    for k in DEPENDS if not (k in OPTIONAL and values[k] is None)},
     }
 
 
@@ -348,7 +373,7 @@ def report(spec, a, ledger=None):
     L.append("| result | label | set by |")
     L.append("| --- | --- | --- |")
     for k in DEPENDS:
-        if k == "fits_capacity" and a["capacity_per_day"] is None:
+        if (k == "fits_capacity" and a["capacity_per_day"] is None) or (k == "acquisition_fits" and a["acquisition_cost"] is None):
             continue
         L.append("| %s | %s | %s |" % (RESULT_NAMES[k], lab(k), "; ".join(a["labels"][k]["weakest"][:3])
                                        + (" and more" if len(a["labels"][k]["weakest"]) > 3 else "")))
@@ -384,6 +409,22 @@ def report(spec, a, ledger=None):
         "{:,.0f}".format(a["plan_per_day"]), a["margin_at_plan"] * 100, lab("margin_at_plan")))
     if a["capacity_per_day"] is not None:
         L.append("- Capacity: %s a day." % a["capacity_per_day"])
+    L.append("")
+    L.append("## What one customer is worth")
+    L.append("")
+    L.append("The first sale buys a customer; what they buy after that is where most of the profit comes from.")
+    L.append("")
+    L.append("- First order: %s %s%s, leaving %s." % ("{:,.0f}".format(a["units_per_customer"]), u,
+                                                   "" if a["units_per_customer"] == 1 else "s",
+                                                   _money(a["contribution"] * a["units_per_customer"])))
+    L.append("- Back end, year 1: %s%s." % (_money(a["backend_per_customer"]),
+                                          "" if a["backend_per_customer"] else " (none given: what is the next thing they buy?)"))
+    L.append("- **Most you can spend to win a customer: %s** and still break even on them in year 1. [%s]" % (
+        _money(a["allowable_acquisition_cost"]), lab("allowable_acquisition_cost")))
+    if a["acquisition_cost"] is not None:
+        L.append("- What it costs now: %s, %s. [%s]" % (
+            _money(a["acquisition_cost"]), "inside the limit" if a["acquisition_fits"] else "OVER the limit",
+            lab("acquisition_fits")))
     L.append("")
     L.append("## Year 1, month by month")
     L.append("")
