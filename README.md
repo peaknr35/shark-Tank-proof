@@ -25,6 +25,11 @@ when a real person does something: pays, signs, books, or says no.
 - **Profitable needs a real buyer.** If the math works but nobody has paid,
   signed or booked, the verdict is **Unproven**. A simulated panel can fail a
   plan but never pass one.
+- **Profitable needs real inputs too.** The price has to be one a real buyer
+  paid, and every cost needs a quote or an invoice. A `PLANNED` price or cost
+  holds the plan at Unproven. Only the volumes (the ramp, the plan, selling
+  days) may stay forecasts. Break-even is `MEASURED` once the price is real
+  and every cost is quoted.
 - **Every report opens with the hard truth:** the most likely reason it fails.
 - **The board has five members**, and the Evidence lens never votes to fund
   without real proof.

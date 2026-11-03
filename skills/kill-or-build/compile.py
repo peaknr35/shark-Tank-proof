@@ -21,6 +21,10 @@ The checks:
 
 A simulated panel can fail a plan but never pass one. Only a real buyer can.
 
+Profitable also needs the inputs that can be real before launch to be real (MEASURED or THEY SAID IT): the
+price a real buyer paid, a quote or invoice for every variable and fixed cost, and the real cost of winning a
+customer if one is given. A PLANNED price or cost holds the verdict at Unproven. The volumes stay forecasts.
+
 Labels travel through the math (receipts/rules.md, rule 10). Every money check
 carries the weakest label of the inputs it was computed from, so a margin worked
 out from a price the simulated panel picked is SIMULATED, not a fact. A money
@@ -40,6 +44,11 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+# Inputs that can be real before launch, so Profitable needs them real: the price a real buyer paid, and a quote
+# or invoice for every cost (and the real cost of winning a customer, once a test has run). The volumes (ramp,
+# plan, selling days, capacity) are forecasts by nature and may stay PLANNED; the plan says so.
+MUST_BE_REAL = ("price", "variable", "fixed_monthly", "acquisition_cost")
+REAL = ("MEASURED", "THEY SAID IT")
 SECTIONS = [  # (file in founder/, heading, which skill writes it)
     ("summary.md", "Summary", "kill-or-build"),
     ("evidence/claims.md", "What is real and what is a guess", "receipts"),
@@ -91,6 +100,7 @@ def verdict(d, min_buy_rate=0.25):
     ledger = _load("receipts", "ledger")
     evidence = ledger.summarise(ledger.load(d))
     simulated_passes = []  # money checks that pass only on a simulated input
+    planned_inputs = []  # inputs that could be real today but are still estimates
     raw = _read(os.path.join(d, "numbers.json"))
     if raw:
         ue = _load_unit_economics()
@@ -117,6 +127,13 @@ def verdict(d, min_buy_rate=0.25):
         if numbers["acquisition_cost"] is not None:
             money(numbers["acquisition_fits"], "Winning a customer costs $%.2f against the $%.2f one is worth in year 1." % (
                 numbers["acquisition_cost"], numbers["allowable_acquisition_cost"]), "acquisition_fits")
+        for k in MUST_BE_REAL:
+            if k == "acquisition_cost" and numbers["acquisition_cost"] is None:
+                continue
+            lab = numbers["inputs"][k]
+            if lab["status"] not in REAL and lab["status"] != "SIMULATED":  # SIMULATED is caught above
+                why = lab["why"]
+                planned_inputs.append("; ".join(why[:3]) + (" and %d more" % (len(why) - 3) if len(why) > 3 else ""))
     raw = _read(os.path.join(d, "panel", "results.json"))
     if raw:
         panel = json.loads(raw)
@@ -130,13 +147,18 @@ def verdict(d, min_buy_rate=0.25):
         v = "Incomplete"
     elif not all(ok for ok, _ in checks):
         v = "Not yet"
-    elif not real or simulated_passes:
+    elif not real or simulated_passes or planned_inputs:
         v = "Unproven"
     else:
         v = "Profitable"
     checks.append((real > 0, demand_text))
+    if planned_inputs:
+        checks.append((False, "Rests on estimates that could be real today, so it cannot make the plan Profitable: %s."
+                       " Log the price a real buyer paid and a quote or invoice for each cost with /receipts, cite them"
+                       " in numbers.json, and compile again." % "; ".join(planned_inputs)))
     if numbers is not None:
         numbers["simulated_passes"] = simulated_passes
+        numbers["planned_inputs"] = planned_inputs
         numbers["stale_handoff"] = stale_handoff(d, numbers)
     return v, checks, numbers, panel, evidence
 
@@ -171,6 +193,12 @@ def compile_plan(d, min_buy_rate=0.25):
         L.append("- %s %s" % ("✓" if ok else "✗", text))
     if v == "Incomplete":
         L.append("- No numbers yet. Run /burn-test, then compile again.")
+    planned = (numbers or {}).get("planned_inputs") or []
+    if v == "Unproven" and planned and evidence["demand_measured"] and not (numbers or {}).get("simulated_passes"):
+        L += ["", "The math works and a real buyer has committed, but the price or the costs are still estimates."
+              " Profitable needs the inputs that can be real before launch to be real: the price a buyer paid and a"
+              " quote or invoice for every cost. The volumes (the ramp, the plan, selling days) stay forecasts, and"
+              " the plan says so."]
     sim = (numbers or {}).get("simulated_passes") or []
     if v == "Unproven" and sim:
         L += ["", "The math passes only on simulated inputs: %s. A number takes the weakest label of anything it"

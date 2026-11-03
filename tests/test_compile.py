@@ -57,12 +57,38 @@ class Compile(unittest.TestCase):
         v, _ = plan.compile_plan(self.d)
         self.assertEqual(v, "Unproven")
 
-    def test_good_numbers_and_a_real_buyer_is_profitable(self):
+    def quotes(self):
+        with open(os.path.join(self.d, "evidence", "evidence-log.md"), "a", encoding="utf-8") as fh:
+            fh.write("| e02 | Supplier and landlord quotes | Email | 2026-11-01 | PRIVATE |\n")
+        return ledger.add(self.d, "Supplier and landlord quotes", "cost", "MEASURED", "PRIVATE", "", "e02")["id"]
+
+    def real_numbers(self):
+        """The price a real buyer paid (c01) and a quote behind every cost."""
+        q = self.quotes()
+        with open(example("burn-test", "example.json")) as fh:
+            s = json.load(fh)
+        for it in s["variable"] + s["fixed_monthly"]:
+            it["claim"] = q
+        s["sources"] = {"price": "c01"}
+        with open(os.path.join(self.d, "numbers.json"), "w") as fh:
+            json.dump(s, fh)
+
+    def test_a_real_buyer_with_estimated_costs_is_unproven(self):
         self.numbers()
         self.panel(40)
         self.real_buyer()
         v, text = plan.compile_plan(self.d)
+        self.assertEqual(v, "Unproven")
+        self.assertIn("✗ Rests on estimates that could be real today", text)
+        self.assertIn("price (no source)", text)
+
+    def test_good_numbers_a_real_buyer_and_real_inputs_is_profitable(self):
+        self.panel(40)
+        self.real_buyer()
+        self.real_numbers()
+        v, text = plan.compile_plan(self.d)
         self.assertEqual(v, "Profitable")
+        self.assertNotIn("Rests on estimates", text)
         self.assertIn("✓ 1 real commitment from buyers", text)
         self.assertTrue(text.startswith("# Moss Matcha Bar · Business plan"))
         self.assertIn("| Profit margin at plan | 38% per cup |", text)

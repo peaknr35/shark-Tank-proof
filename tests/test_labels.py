@@ -214,8 +214,43 @@ class Handoff(Base):
         self.write_numbers(sources={"price": "c02"})
         self.real_buyer()
         v, text = plan.compile_plan(self.d)
+        self.assertEqual(v, "Unproven")  # a real price, but the costs are still estimates
+        self.assertIn("variable: Matcha (ceremonial, 2g) (no source)", text)
+        quote = ledger.add(self.d, "Supplier and landlord quotes", "cost", "MEASURED", "PRIVATE", "", "e01")["id"]
+        s = spec(sources={"price": "c02"})
+        for it in s["variable"] + s["fixed_monthly"]:
+            it["claim"] = quote
+        with open(os.path.join(self.d, "numbers.json"), "w") as fh:
+            json.dump(s, fh)
+        v, text = plan.compile_plan(self.d)
         self.assertEqual(v, "Profitable")
-        self.assertIn("[PLANNED:", text)  # still projections: the costs and ramp have no quotes behind them
+        self.assertIn("[MEASURED:", text)  # contribution: a real price and quoted costs
+        self.assertIn("[PLANNED:", text)  # year 1 is still a projection: the ramp is a forecast
+
+    def test_a_they_said_it_cost_counts_as_real(self):
+        ledger.add(self.d, "Real sale price", "price", "MEASURED", "PRIVATE", "$6.50", "e02")  # c01
+        said = ledger.add(self.d, "Landlord told us the rent", "cost", "THEY SAID IT", "PRIVATE", "", "e01")["id"]
+        s = spec(sources={"price": "c01"})
+        for it in s["variable"] + s["fixed_monthly"]:
+            it["claim"] = said
+        with open(os.path.join(self.d, "numbers.json"), "w") as fh:
+            json.dump(s, fh)
+        self.real_buyer()
+        v, _ = plan.compile_plan(self.d)
+        self.assertEqual(v, "Profitable")
+
+    def test_a_planned_acquisition_cost_blocks_profitable(self):
+        ledger.add(self.d, "Real sale price", "price", "MEASURED", "PRIVATE", "$6.50", "e02")  # c01
+        quote = ledger.add(self.d, "Quotes", "cost", "MEASURED", "PRIVATE", "", "e01")["id"]
+        s = spec(sources={"price": "c01"}, acquisition_cost=3)
+        for it in s["variable"] + s["fixed_monthly"]:
+            it["claim"] = quote
+        with open(os.path.join(self.d, "numbers.json"), "w") as fh:
+            json.dump(s, fh)
+        self.real_buyer()
+        v, text = plan.compile_plan(self.d)
+        self.assertEqual(v, "Unproven")
+        self.assertIn("acquisition_cost (no source)", text)
 
     def test_a_simulated_pass_still_fails_when_the_numbers_fail(self):
         ledger.add(self.d, "Panel price", "price", "SIMULATED", "PRIVATE", "$3.00")

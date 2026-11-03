@@ -82,8 +82,8 @@ The verdicts:
 | --- | --- |
 | Incomplete | no numbers yet: offer `/burn-test` |
 | Not yet | a check fails; each failure is listed with its number |
-| Unproven | the math works on paper, but no real buyer has committed, or a money check passes only on a simulated input |
-| Profitable | the math works on inputs that are not simulated, and at least one real buyer committed |
+| Unproven | the math works on paper, but no real buyer has committed, a money check passes only on a simulated input, or the price or a cost is still an estimate (`PLANNED`) |
+| Profitable | the math works, at least one real buyer committed, and the price and every cost are real: a sale, a quote, an invoice. Only the volumes (ramp, plan, selling days) may stay forecasts |
 
 Run `ledger.py summary` first so the evidence section is current:
 

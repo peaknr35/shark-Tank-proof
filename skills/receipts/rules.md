@@ -118,6 +118,10 @@ Strongest to weakest: `MEASURED` > `THEY SAID IT` > `PLANNED` > `SIMULATED`.
   at it, and run the stage again.
 - A passing check that rests on a `SIMULATED` input can fail a plan but never
   pass one, the same as the panel itself.
+- A `PLANNED` price or cost blocks Profitable too. The price and the costs can
+  be real before launch (a buyer pays, a supplier quotes), so Profitable needs
+  them `MEASURED` or `THEY SAID IT`. Only the volumes (the ramp, the plan,
+  selling days, capacity) may stay forecasts, and the plan says they are.
 
 ### Every handoff carries its labels
 
