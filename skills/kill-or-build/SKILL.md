@@ -27,6 +27,32 @@ Tool in this folder:
 python3 "${CLAUDE_SKILL_DIR}/compile.py" --dir founder
 ```
 
+## Handoff contract
+
+This is where a simulated number would finally pass as a fact, by being added
+up with real ones. Rule 10 in `rules.md` stops it: every number takes the
+weakest label of anything it was computed from.
+
+**Inputs**
+
+| input | label |
+| --- | --- |
+| `founder/numbers.json` with its `sources` and item `claim` ids | each input's label, looked up in the ledger |
+| `founder/evidence/claims.csv` | the labels themselves, and the `from` column of computed claims |
+| `founder/panel/results.json` | always `SIMULATED` |
+
+**Process:** `compile.py` reruns the CFO's math with the ledger, so every money
+check carries the weakest label of its inputs, then computes the verdict.
+
+**Outputs**
+
+| output | label |
+| --- | --- |
+| each check in `founder/business-plan.md` | printed after it, with the input that set it: `[SIMULATED: price [c08]]` |
+| the key numbers table | a "how we know" column |
+| the verdict | Profitable only if no money check passes on a `SIMULATED` input |
+| label leaks | a computed claim in the ledger that says more than its sources is listed under the verdict |
+
 ## Step 1: see what is there
 
 ```bash
@@ -45,14 +71,18 @@ prints the verdict and each check. The checks, all computed:
    `founder/evidence/claims.csv` (a payment, a deposit, a signed pilot, a
    booking).
 
+Checks 1 to 3 print their label. A check that passes on a `SIMULATED` input
+(the usual case: the price came from the panel) can fail the plan but cannot
+pass it, the same as check 4.
+
 The verdicts:
 
 | verdict | means |
 | --- | --- |
 | Incomplete | no numbers yet: offer `/burn-test` |
 | Not yet | a check fails; each failure is listed with its number |
-| Unproven | the math works on paper, but no real buyer has committed |
-| Profitable | the math works and at least one real buyer committed |
+| Unproven | the math works on paper, but no real buyer has committed, or a money check passes only on a simulated input |
+| Profitable | the math works on inputs that are not simulated, and at least one real buyer committed |
 
 Run `ledger.py summary` first so the evidence section is current:
 
@@ -111,6 +141,8 @@ may see and checks the result.
 - The verdict comes from `compile.py`. Never write Profitable by hand, never
   round a failing number into a passing one, and never call Unproven "almost
   there".
+- Quote every number in the summary and one-pager with the label the plan
+  printed. A margin the plan marks `SIMULATED` is never written as the margin.
 - Say once, clearly: the panel and board are simulated and the numbers are
   projections; only real customers and real quotes confirm them. Not financial,
   legal or tax advice.

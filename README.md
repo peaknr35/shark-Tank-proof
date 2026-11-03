@@ -28,6 +28,10 @@ when a real person does something: pays, signs, books, or says no.
 - **Every report opens with the hard truth:** the most likely reason it fails.
 - **The board has four members**, and the Evidence lens never votes to fund
   without real proof.
+- **A number takes the weakest label of anything it was computed from.** A
+  margin worked out from a price the simulated panel picked is `SIMULATED`,
+  however clean the arithmetic, so it cannot pass the plan by the time
+  `/kill-or-build` adds it all up.
 - **Promises are goals.** "3x faster" is logged as planned until it is measured.
 - **The first ask is small:** a time-boxed pilot on the buyer's own numbers.
 - **Pitches are checked** against the ledger before they go out.
@@ -94,6 +98,17 @@ What a run looks like, honestly:
 
 ## What's new
 
+- **Labels travel through the math.** The break used to be at the handoff
+  between skills: `/litmus` set a price from the simulated buyers, `/burn-test`
+  worked out the margin from it, and the margin reached the verdict looking
+  like a fact. Now every handoff file carries its labels (the method is
+  Interpretable Context Methodology: stages are folders and files a person can
+  open between steps). `ledger.py add --from c07,c08` gives a computed claim the
+  weakest label of its sources and refuses a stronger one. `numbers.json`
+  points each input at its claim, `unit_economics.py` prints the label of every
+  result and the input that set it, and `compile.py` will not say Profitable
+  while a money check passes only on a simulated input. Rule 10 in
+  `skills/receipts/rules.md`.
 - **A funding list.** `/first-dollar` starts from 42 grants, procurement
   portals and programs (NSF Seed Fund, SBIR.gov, SAM.gov, Innovate UK, EIC,
   IRAP, startup credits and more), each with its link, who it is for, how to
@@ -139,6 +154,7 @@ All standard-library Python. None touch the network.
 ```bash
 python3 skills/receipts/ledger.py init
 python3 skills/receipts/ledger.py add --claim "2 of 5 firms agreed to a pilot" --kind demand --status MEASURED --use ANONYMISED --number "2 of 5" --evidence e04
+python3 skills/receipts/ledger.py add --claim "Recommended price" --kind price --use PRIVATE --number "$6.50" --from c07
 python3 skills/receipts/ledger.py summary
 python3 skills/receipts/ledger.py scan founder/outputs/2026-11-02-acme.md --audience public
 python3 skills/burn-test/unit_economics.py founder/numbers.json --out founder/cfo.md
@@ -149,7 +165,8 @@ python3 skills/kill-or-build/compile.py --dir founder
 
 **`ledger.py`** keeps the claims. `add` refuses a `MEASURED` or `THEY SAID IT`
 claim with no evidence file behind it, and a logged no ("0 of 5") never counts
-as a buyer. `gate` lists what a pitch to an audience may use (never
+as a buyer. A claim added `--from` other claims takes the weakest of their
+labels, and `check` flags one that says more than its sources. `gate` lists what a pitch to an audience may use (never
 `SIMULATED`, never `PRIVATE`). `scan` checks a finished pitch: every cited
 claim must pass the gate, and proof words like "validated" are flagged when no
 real buyer has paid.

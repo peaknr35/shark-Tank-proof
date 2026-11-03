@@ -25,6 +25,14 @@ The four points it reports:
 
 PMC to PME is the acceptable range. These are answers from simulated buyers:
 use the range to choose what to TEST, then test it with real ones.
+
+The label travels (receipts/rules.md, rule 10). The panel's answers folder is
+always SIMULATED. A CSV is SIMULATED too unless you say otherwise with --status
+(real survey answers with an evidence id are THEY SAID IT). Any price picked
+from this range carries the same label into the ledger, numbers.json and the
+CFO's margin, until a real buyer pays it.
+
+    python3 van_westendorp.py real-survey.csv --status "THEY SAID IT"
 """
 
 import argparse
@@ -35,6 +43,7 @@ import os
 import sys
 
 KEYS = ("too_cheap", "cheap", "expensive", "too_expensive")
+STATUSES = ("MEASURED", "THEY SAID IT", "PLANNED", "SIMULATED")
 
 
 class PricingError(Exception):
@@ -121,12 +130,23 @@ def analyse(rows, step=None):
             "median": {k: sorted(r[i] for r in rows)[len(rows) // 2] for i, k in enumerate(KEYS)}}
 
 
-def report(res, dropped, price=None):
+def source_status(path, status=None):
+    """The label on a range from this source. The panel folder is always SIMULATED; the weakest is the default."""
+    if os.path.isdir(path):
+        return "SIMULATED"
+    return status or "SIMULATED"
+
+
+def report(res, dropped, price=None, status="SIMULATED"):
     m = lambda v: "n/a" if v is None else "$%.2f" % v
     p = res["points"]
+    who = ("Simulated buyers: use this to pick what to test, not as the final word." if status == "SIMULATED"
+           else "Real answers (%s): stronger than a panel, still not a sale." % status)
     L = ["# Price sensitivity", "",
-         "%d complete answers%s. Simulated buyers: use this to pick what to test, not as the final word." % (
-             res["n"], (", %d dropped (incomplete or out of order)" % dropped) if dropped else ""), "",
+         "**How we know this range: %s.** Any price picked from it is %s too, and so is every margin worked out"
+         " from that price, until a real buyer pays it (rules.md, rule 10)." % (status, status), "",
+         "%d complete answers%s. %s" % (
+             res["n"], (", %d dropped (incomplete or out of order)" % dropped) if dropped else "", who), "",
          "| point | price | what it means |", "| --- | ---: | --- |",
          "| PMC | %s | below this, too many think it is too cheap to be good |" % m(p["PMC"]),
          "| OPP | %s | as many say too cheap as too expensive: the least resistance |" % m(p["OPP"]),
@@ -150,6 +170,8 @@ def main(argv=None):
     ap.add_argument("--price", type=float, help="your current price, to place it on the range")
     ap.add_argument("--out", help="write the report here (markdown)")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--status", choices=STATUSES,
+                    help="the label for a CSV of real answers (default SIMULATED; the panel folder is always SIMULATED)")
     a = ap.parse_args(argv)
     try:
         rows, dropped = read(a.source)
@@ -157,10 +179,13 @@ def main(argv=None):
     except (PricingError, FileNotFoundError) as e:
         print("error: %s" % e, file=sys.stderr)
         return 2
+    status = source_status(a.source, a.status)
+    if a.status and a.status != status:
+        print("note: the panel's answers are SIMULATED whatever --status says", file=sys.stderr)
     if a.json:
-        print(json.dumps(dict(res, dropped=dropped), indent=1))
+        print(json.dumps(dict(res, dropped=dropped, status=status), indent=1))
         return 0
-    text = report(res, dropped, a.price)
+    text = report(res, dropped, a.price, status)
     if a.out:
         with open(a.out, "w", encoding="utf-8") as fh:
             fh.write(text)
