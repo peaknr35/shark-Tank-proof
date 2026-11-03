@@ -25,10 +25,10 @@ they pay today), it outranks every simulated answer below.
 Tool in this folder:
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/van_westendorp.py" founder/panel/answers --price 6.50 --out founder/pricing-curve.md
+python3 "${CLAUDE_SKILL_DIR}/van_westendorp.py" founder/panel/answers --price 6.50 --out founder/pricing-curve.md --handoff founder
 ```
 
-## Handoff contract
+## Handoff contract (stage 04 in `founder/CONTEXT.md`)
 
 This skill sits between the panel and the CFO, which is where a simulated
 number most easily turns into a "fact". Rule 10 in `rules.md`: a number takes
@@ -50,6 +50,7 @@ the weakest label of anything it was computed from.
 | output | label |
 | --- | --- |
 | `founder/pricing-curve.md` | the tool prints it at the top: "How we know this range" |
+| `founder/handoff/04_litmus.json` | the four points, each with the range's label and where the answers came from |
 | the range claim in the ledger | the range's label (`SIMULATED` from the panel) |
 | the price claim in the ledger | `--from` the claims it was picked from, so it takes the weakest |
 | `founder/numbers.json` `"sources": {"price": "c.."}` | points at the price claim, so `/burn-test` can carry the label on |

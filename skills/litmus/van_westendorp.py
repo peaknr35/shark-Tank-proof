@@ -162,6 +162,21 @@ def report(res, dropped, price=None, status="SIMULATED"):
     return "\n".join(L) + "\n"
 
 
+STAGE = "04_litmus"
+
+
+def write_handoff(res, d, status, source=""):
+    """The stage's handoff: the four points and the range, labelled by where the answers came from."""
+    path = os.path.join(d, "handoff", STAGE + ".json")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    data = {"stage": STAGE, "status": status, "source": source, "answers": res["n"],
+            "results": {k.lower(): {"value": v, "status": status, "set_by": [source or "the answers"]}
+                        for k, v in res["points"].items()}}
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, indent=1)
+    return path
+
+
 def main(argv=None):
     if hasattr(sys.stdout, "reconfigure"):  # Windows consoles default to cp1252
         sys.stdout.reconfigure(encoding="utf-8")
@@ -172,6 +187,7 @@ def main(argv=None):
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--status", choices=STATUSES,
                     help="the label for a CSV of real answers (default SIMULATED; the panel folder is always SIMULATED)")
+    ap.add_argument("--handoff", metavar="DIR", help="the founder folder: write DIR/handoff/%s.json" % STAGE)
     a = ap.parse_args(argv)
     try:
         rows, dropped = read(a.source)
@@ -182,6 +198,8 @@ def main(argv=None):
     status = source_status(a.source, a.status)
     if a.status and a.status != status:
         print("note: the panel's answers are SIMULATED whatever --status says", file=sys.stderr)
+    if a.handoff:
+        print("handed off %s (%s)" % (write_handoff(res, a.handoff, status, a.source), status), file=sys.stderr)
     if a.json:
         print(json.dumps(dict(res, dropped=dropped, status=status), indent=1))
         return 0

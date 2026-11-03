@@ -134,7 +134,23 @@ def verdict(d, min_buy_rate=0.25):
     checks.append((real > 0, demand_text))
     if numbers is not None:
         numbers["simulated_passes"] = simulated_passes
+        numbers["stale_handoff"] = stale_handoff(d, numbers)
     return v, checks, numbers, panel, evidence
+
+
+def stale_handoff(d, numbers):
+    """Results whose label in handoff/06_burn-test.json no longer matches what the inputs give now.
+
+    The verdict always uses the labels worked out now. A stale file means a source changed after /burn-test
+    ran (a price claim relabelled, a quote added), so the CFO's report a person reads is out of date.
+    """
+    raw = _read(os.path.join(d, "handoff", "06_burn-test.json"))
+    if not raw:
+        return []
+    stored = json.loads(raw).get("results", {})
+    return ["%s: %s in the handoff, %s now" % (k, v.get("status"), numbers["labels"][k]["status"])
+            for k, v in sorted(stored.items())
+            if k in numbers["labels"] and v.get("status") != numbers["labels"][k]["status"]]
 
 
 def compile_plan(d, min_buy_rate=0.25):
@@ -166,6 +182,11 @@ def compile_plan(d, min_buy_rate=0.25):
     if leaks:
         L += ["", "**Label leaks in the ledger** (a computed claim says more than its sources; fix with /receipts):"]
         L += ["- %s" % e for e in leaks]
+    stale = (numbers or {}).get("stale_handoff") or []
+    if stale:
+        L += ["", "**Stale handoff** (a source changed after /burn-test ran, so `cfo.md` is out of date; the verdict"
+              " above uses the labels as they stand now). Run /burn-test again:"]
+        L += ["- %s" % s for s in stale]
     L.append("")
     if numbers:
         be = numbers["breakeven_per_day"]

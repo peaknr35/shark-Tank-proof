@@ -40,6 +40,7 @@ Below, `LEDGER` means exactly that. State lives in `founder/evidence/`.
 ```
 founder/
   START-HERE.md        the map (copy templates/START-HERE.md)
+  CONTEXT.md           the stage map: which skill reads, writes and hands on what (made by init)
   me.md                who is behind it (copy templates/me.md)
   idea.md ...          what the other skills write
   work/                one file per project, pilot or client (copy templates/work-record.md)
@@ -51,6 +52,7 @@ founder/
     <originals>        screenshots, emails, receipts, recordings, signed pages
   opportunities/       one file per customer, funder or internal ask
   outputs/             every pitch, dated, written by /handshake
+  handoff/             labelled results passed between stages: 04_litmus.json, 06_burn-test.json
 ```
 
 ## Four jobs

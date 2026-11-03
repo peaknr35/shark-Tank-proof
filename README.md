@@ -109,6 +109,14 @@ What a run looks like, honestly:
   result and the input that set it, and `compile.py` will not say Profitable
   while a money check passes only on a simulated input. Rule 10 in
   `skills/receipts/rules.md`.
+- **The folder is an ICM workspace.** `ledger.py init` writes
+  `founder/CONTEXT.md`, the stage map: each skill as a numbered stage, what it
+  reads, what it writes and what it hands on. `/litmus` and `/burn-test` write
+  their results, labels and the inputs that set them to
+  `founder/handoff/04_litmus.json` and `06_burn-test.json`, files you can open
+  between stages. `ledger.py trace c09` shows where a computed claim came from,
+  down to the originals, and `/kill-or-build` flags a handoff whose labels went
+  stale after a source changed.
 - **A funding list.** `/first-dollar` starts from 42 grants, procurement
   portals and programs (NSF Seed Fund, SBIR.gov, SAM.gov, Innovate UK, EIC,
   IRAP, startup credits and more), each with its link, who it is for, how to
@@ -157,9 +165,9 @@ python3 skills/receipts/ledger.py add --claim "2 of 5 firms agreed to a pilot" -
 python3 skills/receipts/ledger.py add --claim "Recommended price" --kind price --use PRIVATE --number "$6.50" --from c07
 python3 skills/receipts/ledger.py summary
 python3 skills/receipts/ledger.py scan founder/outputs/2026-11-02-acme.md --audience public
-python3 skills/burn-test/unit_economics.py founder/numbers.json --out founder/cfo.md
+python3 skills/burn-test/unit_economics.py founder/numbers.json --out founder/cfo.md --handoff founder
 python3 skills/truth-serum/panel.py init --customer founder/customer.json --pitch founder/pitch.md
-python3 skills/litmus/van_westendorp.py founder/panel/answers --price 6.50
+python3 skills/litmus/van_westendorp.py founder/panel/answers --price 6.50 --handoff founder
 python3 skills/kill-or-build/compile.py --dir founder
 ```
 

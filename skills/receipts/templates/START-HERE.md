@@ -17,6 +17,8 @@
 | See the board, panel, pricing, offer, numbers | `board.md`, `panel/results.md`, `pricing.md`, `offer.md`, `cfo.md` |
 | See what I am pursuing | `opportunities/` |
 | Find a pitch I already made | `outputs/` |
+| See which skill reads and hands on what | `CONTEXT.md` |
+| Check how we know a number a skill worked out | `handoff/`, or `ledger.py trace <claim id>` |
 
 Labels on every claim: status (MEASURED, THEY SAID IT, PLANNED, SIMULATED) and use
 (PUBLIC, ANONYMISED, ASK FIRST, PRIVATE). PRIVATE never leaves this folder.

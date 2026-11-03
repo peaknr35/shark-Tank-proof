@@ -26,6 +26,7 @@ Files, all under <dir>/evidence/:
     python3 ledger.py add --claim "Contribution per cup" --kind cost --use PRIVATE --number "$4.76" --from c07,c08
                                                      # no --status: it takes the weakest label of c07 and c08
     python3 ledger.py label c07,c08                  # the label a number computed from these would carry
+    python3 ledger.py trace c09                      # where a computed claim came from, down to the originals
     python3 ledger.py check                          # exit 1 if any claim breaks a rule (including a label leak)
     python3 ledger.py summary                        # claims.md + summary.json
     python3 ledger.py gate --audience public         # what a pitch to this audience may use
@@ -109,6 +110,22 @@ def derived_status(rows_by_id, ids):
     return st, [i for i in ids if labels[i] == st], missing
 
 
+def trace(rows_by_id, cid, depth=0, seen=()):
+    """Lines showing where a claim came from: its label, then each claim in its from column, down to the originals."""
+    pad = "  " * depth
+    r = rows_by_id.get(cid)
+    if r is None:
+        return ["%s[%s] not in the ledger: counts as SIMULATED" % (pad, cid)]
+    if cid in seen:
+        return ["%s[%s] loops back on itself: counts as SIMULATED" % (pad, cid)]
+    sources = split_ids(r.get("from", ""))
+    lines = ["%s[%s] %s: %s%s%s" % (pad, cid, r["status"], r["claim"], (" (" + r["number"] + ")") if r["number"] else "",
+                                    (" evidence " + r["evidence"]) if r["evidence"] else ("" if sources else " (no source)"))]
+    for s in sources:
+        lines += trace(rows_by_id, s, depth + 1, seen + (cid,))
+    return lines
+
+
 def _ev_dir(d):
     return os.path.join(d, "evidence")
 
@@ -119,11 +136,19 @@ def _claims_path(d):
 
 def init(d):
     made = []
-    for sub in ("evidence", os.path.join("evidence", "calls"), "work", "opportunities", "outputs"):
+    for sub in ("evidence", os.path.join("evidence", "calls"), "work", "opportunities", "outputs", "handoff"):
         p = os.path.join(d, sub)
         if not os.path.isdir(p):
             os.makedirs(p)
             made.append(p)
+    context = os.path.join(d, "CONTEXT.md")  # the stage map: which skill reads, writes and hands on what
+    if not os.path.exists(context):
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "templates", "CONTEXT.md"),
+                  encoding="utf-8") as fh:
+            body = fh.read()
+        with open(context, "w", encoding="utf-8") as fh:
+            fh.write(body)
+        made.append(context)
     for path, body in ((_claims_path(d), ",".join(FIELDS) + "\n"),
                        (os.path.join(_ev_dir(d), "evidence-log.md"), EVIDENCE_LOG),
                        (os.path.join(_ev_dir(d), "people.md"), PEOPLE)):
@@ -378,6 +403,7 @@ def main(argv=None):
     a_add.add_argument("--from", dest="derived_from", default="", help="claim ids this number was computed from")
     a_label = sub.add_parser("label")
     a_label.add_argument("ids", help="claim ids, like c07,c08")
+    sub.add_parser("trace").add_argument("id", help="a claim id, like c09")
     sub.add_parser("check")
     sub.add_parser("summary")
     a_gate = sub.add_parser("gate")
@@ -406,6 +432,9 @@ def main(argv=None):
         st, weak_ids, missing = derived_status({r["id"]: r for r in load(a.dir)}, a.ids)
         print("%s, set by %s%s" % (st, ", ".join(weak_ids),
                                    ("; not in the ledger: %s" % ", ".join(missing)) if missing else ""))
+        return 0
+    if a.cmd == "trace":
+        print("\n".join(trace({r["id"]: r for r in load(a.dir)}, a.id)))
         return 0
     if a.cmd == "check":
         errors, warnings = check(a.dir)

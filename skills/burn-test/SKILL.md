@@ -23,10 +23,10 @@ Read `${CLAUDE_SKILL_DIR}/../receipts/rules.md` first.
 Tool in this folder:
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/unit_economics.py" founder/numbers.json --out founder/cfo.md
+python3 "${CLAUDE_SKILL_DIR}/unit_economics.py" founder/numbers.json --out founder/cfo.md --handoff founder
 ```
 
-## Handoff contract
+## Handoff contract (stage 06 in `founder/CONTEXT.md`)
 
 The margin is only as real as the weakest number it was computed from (rule 10
 in `rules.md`). This skill takes each input's label in and hands each result's
@@ -57,6 +57,7 @@ inputs.
 | output | label |
 | --- | --- |
 | `founder/cfo.md` | opens with "How we know each number": every result, its label, and the input that set it |
+| `founder/handoff/06_burn-test.json` | the same, as a file the next stage reads: each result's value, label and `set_by`. A what-if is never handed off |
 | the results you log in the ledger | `ledger.py add ... --from <the input claim ids>`, no `--status` |
 
 ## Step 1: gather the inputs

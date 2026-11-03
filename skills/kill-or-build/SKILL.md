@@ -27,7 +27,7 @@ Tool in this folder:
 python3 "${CLAUDE_SKILL_DIR}/compile.py" --dir founder
 ```
 
-## Handoff contract
+## Handoff contract (stage 11 in `founder/CONTEXT.md`)
 
 This is where a simulated number would finally pass as a fact, by being added
 up with real ones. Rule 10 in `rules.md` stops it: every number takes the
@@ -40,6 +40,7 @@ weakest label of anything it was computed from.
 | `founder/numbers.json` with its `sources` and item `claim` ids | each input's label, looked up in the ledger |
 | `founder/evidence/claims.csv` | the labels themselves, and the `from` column of computed claims |
 | `founder/panel/results.json` | always `SIMULATED` |
+| `founder/handoff/06_burn-test.json` | what `/burn-test` handed on; if its labels differ from what the ledger gives now, the plan flags a stale handoff |
 
 **Process:** `compile.py` reruns the CFO's math with the ledger, so every money
 check carries the weakest label of its inputs, then computes the verdict.

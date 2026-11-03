@@ -132,7 +132,11 @@ travels in the handoff files, next to the number, where a person can see it:
 | `/litmus` to `/burn-test` | `pricing-curve.md`, the price claim, `numbers.json` `sources.price` | the range prints its label; the price claim is logged `--from` the range claim, so it inherits it |
 | `/burn-test` to `/kill-or-build` | `numbers.json` (`sources`, item `claim`), `cfo.md` | `unit_economics.py` prints the label of every result and the input that set it |
 | `/kill-or-build` to the reader | `business-plan.md` | every check shows its label; a simulated pass caps the verdict at Unproven |
-| anything to the ledger | `claims.csv` `from` column | `ledger.py add --from c07,c08` takes the weakest label; `check` flags a leak |
+| anything to the ledger | `claims.csv` `from` column | `ledger.py add --from c07,c08` takes the weakest label; `check` flags a leak; `trace c09` shows the chain |
+| `/litmus`, `/burn-test` to the next stage | `handoff/04_litmus.json`, `handoff/06_burn-test.json` | each result with its value, label and the inputs that set it; `/kill-or-build` flags a file whose labels went stale |
+
+The map of every stage, what it reads and what it hands on, is
+`founder/CONTEXT.md` (`ledger.py init` writes it).
 
 Each skill that hands a number on writes a short **handoff contract** in its
 SKILL.md: what it reads (with labels), what it does, what it writes (with

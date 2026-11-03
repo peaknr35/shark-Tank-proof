@@ -44,6 +44,11 @@ guessed. If a field is missing the tool says so instead of filling it in.
 
 --price and --volume run a what-if without editing the file: --price replaces
 the price, --volume scales every volume (0.8 = 20 percent fewer sales).
+
+--handoff DIR writes the stage's handoff file, DIR/handoff/06_burn-test.json:
+every result with its value, its label and the inputs that set it, so the next
+stage (and a person) reads the label from a file, not from a sentence. A
+what-if is never handed off.
 """
 
 import argparse
@@ -75,6 +80,9 @@ RESULT_NAMES = {
     "cash_needed": "Cash needed", "payback_month": "Startup money earned back",
     "fits_capacity": "Break-even inside capacity",
 }
+
+
+STAGE = "06_burn-test"
 
 
 class NumbersError(Exception):
@@ -295,6 +303,29 @@ def sensitivity(spec, ledger=None):
     return rows
 
 
+def handoff(a):
+    """The stage's handoff: every result with its value, label and the inputs that set it."""
+    values = {k: a[k] for k in DEPENDS if k in a}
+    be = a["breakeven_per_day"]
+    values["breakeven_per_day"] = None if math.isinf(be) else be
+    cap = a["capacity_per_day"]
+    values["fits_capacity"] = None if cap is None else (not math.isinf(be) and be <= float(cap))
+    return {
+        "stage": STAGE, "business": a["business"], "unit": a["unit"],
+        "inputs": a["inputs"],
+        "results": {k: {"value": values[k], "status": a["labels"][k]["status"], "set_by": a["labels"][k]["weakest"]}
+                    for k in DEPENDS if not (k == "fits_capacity" and cap is None)},
+    }
+
+
+def write_handoff(a, d):
+    path = os.path.join(d, "handoff", STAGE + ".json")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(handoff(a), fh, indent=1)
+    return path
+
+
 def label_of(a, result):
     """'SIMULATED: price [c07]' for a result in an analyse() output."""
     lab = a["labels"][result]
@@ -398,7 +429,11 @@ def main(argv=None):
     ap.add_argument("--price", type=float, help="what-if price")
     ap.add_argument("--volume", type=float, default=1.0, help="what-if volume multiplier")
     ap.add_argument("--ledger", help="the folder with evidence/claims.csv (default: the numbers file's folder)")
+    ap.add_argument("--handoff", metavar="DIR", help="the founder folder: write DIR/handoff/%s.json" % STAGE)
     args = ap.parse_args(argv)
+    if args.handoff and (args.price is not None or args.volume != 1.0):
+        print("error: a what-if is not handed off. Drop --price/--volume, or drop --handoff.", file=sys.stderr)
+        return 2
     try:
         spec = load(args.numbers)
         ledger = load_ledger(args.ledger or os.path.dirname(os.path.abspath(args.numbers)))
@@ -428,6 +463,8 @@ def main(argv=None):
         out["breakeven_per_day"] = None if math.isinf(out["breakeven_per_day"]) else out["breakeven_per_day"]
         print(json.dumps(out, indent=1))
         return 0
+    if args.handoff:
+        print("handed off %s" % write_handoff(a, args.handoff))
     text = report(spec, a, ledger)
     if args.out:
         with open(args.out, "w", encoding="utf-8") as fh:
