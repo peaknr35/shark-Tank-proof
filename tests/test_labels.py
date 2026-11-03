@@ -125,7 +125,27 @@ class UnitEconomics(Base):
             it["claim"] = "c02"
         a = ue.analyse(s, ledger=self.rows())
         self.assertEqual(a["labels"]["contribution"]["status"], "MEASURED")
+        self.assertEqual(a["labels"]["breakeven_per_day"]["status"], "PLANNED")  # rent and labour not quoted yet
         self.assertEqual(a["labels"]["margin_at_plan"]["status"], "PLANNED")  # the plan volume is a plan
+
+    def test_breakeven_is_measured_when_every_cost_is_quoted(self):
+        ledger.add(self.d, "Real sale price", "price", "MEASURED", "PRIVATE", "$6.50", "e02")  # c01
+        ledger.add(self.d, "Supplier and landlord quotes", "cost", "MEASURED", "PRIVATE", "", "e01")  # c02
+        s = spec(sources={"price": "c01"})
+        for it in s["variable"] + s["fixed_monthly"]:
+            it["claim"] = "c02"
+        a = ue.analyse(s, ledger=self.rows())
+        self.assertEqual(a["labels"]["breakeven_per_day"]["status"], "MEASURED")
+        self.assertEqual(a["labels"]["margin_at_plan"]["status"], "PLANNED")  # still uses the plan volume
+        self.assertEqual(a["labels"]["fits_capacity"]["status"], "PLANNED")  # capacity and days have no source
+        s["variable"][0].pop("claim")  # one unquoted cost brings it back down
+        self.assertEqual(ue.analyse(s, ledger=self.rows())["labels"]["breakeven_per_day"]["status"], "PLANNED")
+        s = spec(sources={"price": "c01"})
+        for it in s["variable"] + s["fixed_monthly"]:
+            it["claim"] = "c02"
+        ledger.add(self.d, "Panel price", "price", "SIMULATED", "PRIVATE")  # c03
+        s["sources"]["price"] = "c03"
+        self.assertEqual(ue.analyse(s, ledger=self.rows())["labels"]["breakeven_per_day"]["status"], "SIMULATED")
 
     def test_a_missing_claim_counts_as_simulated(self):
         a = ue.analyse(spec(sources={"price": "c42"}), ledger=self.rows())

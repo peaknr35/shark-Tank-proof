@@ -57,9 +57,12 @@ import sys
 # Strongest first; the same order as receipts/ledger.py.
 STRENGTH = {"MEASURED": 3, "THEY SAID IT": 2, "PLANNED": 1, "SIMULATED": 0}
 # Which inputs each result is computed from.
+# Break-even is fixed / contribution units a month: price and costs only. Selling days just restate it per
+# day, so they do not lower its label; with a quoted price and every cost quoted, break-even is MEASURED.
+# Comparing it with a daily capacity does use the days, so fits_capacity keeps them.
 DEPENDS = {
     "contribution": ["price", "variable"],
-    "breakeven_per_day": ["price", "variable", "fixed_monthly", "days_per_month"],
+    "breakeven_per_day": ["price", "variable", "fixed_monthly"],
     "margin_at_plan": ["price", "variable", "fixed_monthly", "days_per_month", "plan_per_day"],
     "year1_profit": ["price", "variable", "fixed_monthly", "days_per_month", "ramp_per_day"],
     "cash_needed": ["price", "variable", "fixed_monthly", "days_per_month", "ramp_per_day", "startup"],

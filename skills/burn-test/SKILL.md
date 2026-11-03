@@ -39,6 +39,11 @@ label on, so nothing simulated reaches `/kill-or-build` looking measured.
 | `price` | `sources.price` in `numbers.json`: the price claim `/litmus` logged (`SIMULATED` if the panel picked it) or a real sale (`MEASURED`) |
 | each `variable`, `fixed_monthly`, `startup` item | its own `"claim": "c.."` (a quote or invoice is `MEASURED`) or `"status"` |
 | `plan_per_day`, `ramp_per_day`, `days_per_month`, `capacity_per_day` | `sources.<field>`; a ramp from the panel's buy rate is `SIMULATED` |
+
+Break-even takes its label from the price and the costs only (selling days just
+restate it per day). Quote every cost and back the price with a real sale, and
+break-even is `MEASURED`; the margin at plan and year 1 still use the ramp, so
+they stay `PLANNED` at best.
 | anything with no source | `PLANNED` |
 
 **Process:** run `unit_economics.py`. It looks every claim id up in
