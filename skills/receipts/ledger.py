@@ -18,6 +18,8 @@ read only from here, so a guess can never turn into a fact on the way out.
 Files, all under <dir>/evidence/:
     claims.csv        the ledger (id,claim,number,kind,status,use,evidence,checked,by,from,commitment)
     evidence-log.md   one table row per original: | e01 | what | where from | date | use |
+                      a buyer's row must name what backs it: a receipt or invoice (paid, deposit), a signed
+                      page (signed), a booking (booked), the email (intro). The file itself is not opened.
     claims.md         written by `summary`, grouped by status
     summary.json      written by `summary`, read by kill-or-build
 
@@ -48,9 +50,31 @@ FIELDS = ["id", "claim", "number", "kind", "status", "use", "evidence", "checked
 # What a real yes is (rules.md, rule 3): money, a signature, real time or reputation. A MEASURED demand claim names
 # which one; a signup, a like, a follow or a download is none of them.
 COMMITMENTS = ["paid", "deposit", "signed", "booked", "intro"]
-# Words that sound like interest, not commitment. A warning, not an error: "signed" is a commitment, "signups" is not.
+# Words that sound like interest, not commitment. A buyer claim that uses one is refused, whatever --commitment says:
+# "signed" is a commitment, "signups" is not. Log the signups as their own claim, kind other.
 NOT_A_COMMITMENT = re.compile(r"\b(sign[- ]?ups?|waitlist|wait list|subscribers?|followers?|likes?|views?|downloads?|"
                               r"visits?|visitors|clicks?|opt[- ]?ins?|emails? collected|interested|free trials?)\b", re.I)
+# What the evidence row for a buyer has to name, by commitment. The commitment is a word the founder types; the row in
+# evidence-log.md ("What it is" and "Where it came from") has to say what original backs it: a receipt or invoice for
+# money, a signed page for a signature, a calendar invite for a booking, the email or message for an intro.
+_MONEY = (r"receipts?|invoices?|payments?|paid|transactions?|bank|statements?|stripe|paypal|square|shopify|"
+          r"checkout|(pre-?)?orders?|charges?|transfers?|venmo|wise|deposits?")
+PROOF = {
+    "paid": _MONEY,
+    "deposit": _MONEY,
+    "signed": r"signed|signatures?|countersigned|contracts?|agreements?|loi|letters? of intent|docusign|"
+              r"purchase orders?|po",
+    "booked": r"bookings?|booked|calendar|invites?|invitations?|appointments?|meetings?|scheduled|reservations?",
+    "intro": r"intros?|introductions?|introduced|referrals?|referred|emails?|messages?|forwarded",
+}
+PROOF = {k: re.compile(r"\b(%s)\b" % v, re.I) for k, v in PROOF.items()}
+PROOF_NAMES = {
+    "paid": "a receipt, invoice, payment or order export",
+    "deposit": "a receipt, invoice, payment or order export",
+    "signed": "a signed page, contract, agreement, LOI or purchase order",
+    "booked": "a booking, calendar invite or appointment",
+    "intro": "the introduction email or message",
+}
 # Most private last. A number computed from others may be shown to no wider an audience than its most private source.
 USE_RANK = {"PUBLIC": 0, "ANONYMISED": 1, "ASK FIRST": 2, "PRIVATE": 3}
 NEEDS_EVIDENCE = ("MEASURED", "THEY SAID IT")
@@ -191,15 +215,18 @@ def load(d):
 
 
 def evidence_ids(d):
+    """{evidence id: "what it is | where it came from"} for every row of evidence-log.md."""
     path = os.path.join(_ev_dir(d), "evidence-log.md")
     if not os.path.exists(path):
-        return set()
-    ids = set()
+        return {}
+    ids = {}
     with open(path, encoding="utf-8") as fh:
         for line in fh:
-            m = re.match(r"^\|\s*(e\d+)\s*\|", line.strip())
+            line = line.strip()
+            m = re.match(r"^\|\s*(e\d+)\s*\|", line)
             if m:
-                ids.add(m.group(1))
+                cells = [c.strip() for c in line.strip("|").split("|")]
+                ids[m.group(1)] = " | ".join(cells[1:3])
     return ids
 
 
@@ -283,13 +310,22 @@ def problems_for(r, ev_ids, rows_by_id=None, today=None):
                        % " / ".join(COMMITMENTS))
         if n and sources and not r["evidence"]:
             out.append("a real buyer needs its own evidence id: a computed claim cannot count as a buyer")
+        word = NOT_A_COMMITMENT.search(r["claim"])
+        if n and word:
+            out.append("%r is interest, not a commitment, whatever --commitment says. Log the %s as their own claim"
+                       " (kind other) and the buyers as a claim that says what they did" % (word.group(0), word.group(0)))
+        if n and commitment in PROOF and r["evidence"] and isinstance(ev_ids, dict):
+            known = [e for e in split_ids(r["evidence"]) if e in ev_ids]
+            if known and not any(PROOF[commitment].search(ev_ids[e]) for e in known):
+                out.append("a %s buyer needs evidence that names %s: %s in evidence-log.md does not"
+                           % (commitment, PROOF_NAMES[commitment], ", ".join(known)))
     if r["status"] in NEEDS_EVIDENCE:
         if not r["evidence"] and sources:
             pass  # a computed claim carries the evidence of the claims it came from
         elif not r["evidence"]:
             out.append("%s needs an evidence id from evidence-log.md" % r["status"])
         else:
-            for e in re.split(r"[ ;,]+", r["evidence"]):
+            for e in split_ids(r["evidence"]):
                 if e and e not in ev_ids:
                     out.append("evidence %s is not in evidence-log.md" % e)
     try:
@@ -337,9 +373,6 @@ def _check_rows(d, today=None):
         if problems:
             bad.setdefault(r["id"], []).extend(problems)
         errors += ["%s: %s" % (tag, p) for p in problems]
-        if r["kind"] == "demand" and r["status"] == "MEASURED" and NOT_A_COMMITMENT.search(r["claim"]):
-            warnings.append("%s: %r sounds like interest, not a commitment. Only money, a signature, a booking or an"
-                            " introduction is a buyer" % (tag, NOT_A_COMMITMENT.search(r["claim"]).group(0)))
         try:
             age = (today - datetime.date.fromisoformat(r["checked"])).days
             if age > STALE_DAYS and r["status"] != "SIMULATED":

@@ -2,7 +2,8 @@
 
 1. compile.py trusted claims.csv as written (a hand-edited MEASURED demand claim with no evidence passed).
 2. A blank number, "not yet", "zero" or "n/a" counted as a real buyer.
-3. "MEASURED demand" was only a label: "200 free signups" passed as a paying buyer.
+3. "MEASURED demand" was only a label: "200 free signups" passed as a paying buyer. Later, in testing: "200 signups"
+   with --commitment paid still passed (the word check only warned), and any evidence row would do.
 4. A computed claim needed no evidence of its own, so a "buyer" could be computed from a supplier quote.
 5. The price's label came from the cited claim, but its value was never compared with it.
 6. A THEY SAID IT price ("a friend said they would pay $6.50") counted as a real price.
@@ -126,8 +127,13 @@ class Commitments(Base):  # 3
     def test_only_named_commitments_count(self):
         with self.assertRaisesRegex(ledger.LedgerError, "is not one of"):
             ledger.add(self.d, "200 signups", "demand", "MEASURED", "PUBLIC", "200", "e01", commitment="signup")
+        with open(os.path.join(self.d, "evidence", "evidence-log.md"), "a", encoding="utf-8") as fh:
+            fh.write("| e03 | Signed pilot agreement | DocuSign | 2026-11-01 | PRIVATE |\n")
+            fh.write("| e04 | Calendar invite for the paid session | Google Calendar | 2026-11-01 | PRIVATE |\n")
+            fh.write("| e05 | Introduction email to their COO | Gmail | 2026-11-01 | PRIVATE |\n")
+        proof = {"paid": "e01", "deposit": "e01", "signed": "e03", "booked": "e04", "intro": "e05"}
         for c in ledger.COMMITMENTS:
-            ledger.add(self.d, "A real yes", "demand", "MEASURED", "PRIVATE", "1", "e01", commitment=c)
+            ledger.add(self.d, "A real yes", "demand", "MEASURED", "PRIVATE", "1", proof[c], commitment=c)
         self.assertEqual(ledger.summarise(ledger.load_checked(self.d)[0])["demand_measured"], len(ledger.COMMITMENTS))
 
     def test_a_hand_edited_buyer_with_no_commitment_is_rejected(self):
@@ -137,10 +143,47 @@ class Commitments(Base):  # 3
         self.assertEqual(v, "Unproven")
         self.assertIn("needs --commitment", text)
 
-    def test_signup_words_warn_even_with_a_commitment(self):
-        ledger.add(self.d, "200 waitlist signups", "demand", "MEASURED", "PUBLIC", "200", "e01", commitment="paid")
-        _, warnings = ledger.check(self.d)
-        self.assertTrue(any("sounds like interest, not a commitment" in w for w in warnings), warnings)
+    def test_signup_words_are_refused_even_with_a_commitment(self):
+        # Found in testing: "200 signups" with --commitment paid went in as a real buyer, check exited 0 and the
+        # summary said Real demand: 1. The commitment is a word the founder types, so the claim text is checked too.
+        for claim in ("200 signups", "200 waitlist signups", "40 free trials", "300 followers"):
+            with self.assertRaisesRegex(ledger.LedgerError, "is interest, not a commitment"):
+                ledger.add(self.d, claim, "demand", "MEASURED", "PUBLIC", "200", "e01", commitment="paid")
+        self.assertEqual(ledger.main(["--dir", self.d, "add", "--claim", "200 signups", "--kind", "demand",
+                                      "--status", "MEASURED", "--use", "PUBLIC", "--number", "200",
+                                      "--evidence", "e01", "--commitment", "paid"]), 1)
+
+    def test_a_hand_edited_signup_buyer_fails_check_and_counts_zero(self):
+        self.hand_row(id="c01", claim="200 signups", number="200", evidence="e01", commitment="paid")
+        errors, _ = ledger.check(self.d)
+        self.assertTrue(any("is interest, not a commitment" in e for e in errors), errors)
+        self.assertEqual(ledger.main(["--dir", self.d, "check"]), 1)
+        self.assertEqual(ledger.write_summary(self.d)["demand_measured"], 0)
+
+    def test_signed_is_a_commitment_word_not_a_signup(self):
+        with open(os.path.join(self.d, "evidence", "evidence-log.md"), "a", encoding="utf-8") as fh:
+            fh.write("| e03 | Signed pilot agreement | DocuSign | 2026-11-01 | PRIVATE |\n")
+        ledger.add(self.d, "2 coaches signed a paid pilot", "demand", "MEASURED", "PRIVATE", "2", "e03",
+                   commitment="signed")
+        self.assertEqual(ledger.summarise(ledger.load_checked(self.d)[0])["demand_measured"], 1)
+
+    def test_a_buyer_needs_evidence_that_names_the_commitment(self):
+        with open(os.path.join(self.d, "evidence", "evidence-log.md"), "a", encoding="utf-8") as fh:
+            fh.write("| e03 | Mailchimp list export | Mailchimp | 2026-11-01 | PRIVATE |\n")
+            fh.write("| e04 | Stripe receipt | Stripe dashboard | 2026-11-01 | PRIVATE |\n")
+        with self.assertRaisesRegex(ledger.LedgerError, "needs evidence that names a receipt, invoice"):
+            ledger.add(self.d, "3 coaches paid", "demand", "MEASURED", "PRIVATE", "3", "e03", commitment="paid")
+        with self.assertRaisesRegex(ledger.LedgerError, "needs evidence that names a signed page"):
+            ledger.add(self.d, "3 coaches signed", "demand", "MEASURED", "PRIVATE", "3", "e04", commitment="signed")
+        ledger.add(self.d, "3 coaches paid", "demand", "MEASURED", "PRIVATE", "3", "e03,e04", commitment="paid")
+        self.hand_row(id="c09", claim="5 coaches paid", number="5", evidence="e03", commitment="paid")
+        rows, rejected = ledger.load_checked(self.d)
+        self.assertEqual(ledger.summarise(rows)["demand_measured"], 1)
+        self.assertTrue(any(x.startswith("c09:") for x in rejected), rejected)
+
+    def test_a_logged_no_from_signups_is_still_allowed(self):
+        ledger.add(self.d, "Waitlist signups who paid when asked", "demand", "MEASURED", "PRIVATE", "0 of 200", "e01")
+        self.assertEqual(ledger.check(self.d)[0], [])
 
     def test_a_logged_no_still_needs_no_commitment(self):
         ledger.add(self.d, "Firms asked for a pilot", "demand", "MEASURED", "PUBLIC", "0 of 10", "e01")

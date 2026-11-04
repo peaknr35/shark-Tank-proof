@@ -24,7 +24,8 @@ A simulated panel can fail a plan but never pass one. Only a real buyer can.
 Every claim is read through ledger.load_checked: a claim that breaks a rule (no evidence, an evidence id not in
 the log, a label or use leak, a demand claim with no commitment or no count) counts as SIMULATED, so editing
 claims.csv by hand cannot make a plan Profitable. A real buyer is a MEASURED demand claim with a commitment
-(paid, deposit, signed, booked, intro), at least one buyer counted and its own evidence. A real price is a
+(paid, deposit, signed, booked, intro), at least one buyer counted, no signup or waitlist words, and its own
+evidence naming a receipt, invoice, signed page, booking or intro email to match. A real price is a
 MEASURED sale or price claim that names the price in numbers.json.
 
 Profitable also needs the inputs that can be real before launch to be real (MEASURED or THEY SAID IT): the

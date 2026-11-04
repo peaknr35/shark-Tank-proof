@@ -29,7 +29,11 @@ when a real person does something: pays, signs, books, or says no.
   rules, so a claim typed into `claims.csv` by hand with no evidence, a leak,
   or no commitment counts as `SIMULATED`. A buyer is a named commitment (paid,
   deposit, signed, booked, intro) with a count of at least one and its own
-  evidence; a signup is not a buyer.
+  evidence, and that evidence row has to name the original that backs it (a
+  receipt or invoice for money, a signed page for a signature, a calendar
+  invite for a booking, the email for an intro). A signup is not a buyer: a
+  buyer claim that says "signups", "waitlist", "followers" or "free trial" is
+  refused, whatever `--commitment` says.
 - **Profitable needs real inputs too.** The price has to be one a real buyer
   paid, and every cost needs a quote or an invoice. A `PLANNED` price or cost
   holds the plan at Unproven. Only the volumes (the ramp, the plan, selling
@@ -112,6 +116,15 @@ What a run looks like, honestly:
 
 ## What's new
 
+- **A signup cannot be typed into a buyer.** Found in testing: "200 signups"
+  with `--commitment paid` went in as a real buyer, because the commitment is
+  a word the founder types and the signup check only warned. Now a buyer claim
+  that uses an interest word (signups, waitlist, followers, downloads, free
+  trial and the like) is an error, so `ledger.py check` exits 1 and the claim
+  counts as `SIMULATED`. A buyer's evidence row must also name a receipt,
+  invoice, signed page, booking or intro email that fits its commitment; a
+  Mailchimp export does not back a `paid` buyer. A logged no ("0 of 200
+  signups paid") is still fine.
 - **Ready, Fire, Aim across the pack.** Rule 11: know the stage, sell first,
   find the optimum selling strategy (where the customers are, what they buy
   first, at what price, with what words), answer seven questions before a
@@ -224,6 +237,15 @@ likewise our own summary of ideas from *Ready, Fire, Aim*.
 
 **The consumer panel is simulated buyers, not customers.** It finds objections
 and questions. It never counts as demand and never appears in a pitch as proof.
+
+**The ledger stops shortcuts, not lies.** It checks that every claim points
+at a row in `evidence-log.md` and that the row names the right kind of
+original. It cannot open the file or tell whether it is real. Someone who
+edits `claims.csv` and `evidence-log.md` together (a made-up `e01 | Stripe
+receipt` with no receipt behind it) gets a clean `check` and a Profitable
+verdict. The pack is honest by design, for founders who want the truth before
+an investor finds it; it is not a fraud detector. Keep the originals in
+`founder/evidence/` so anyone checking the plan can open them.
 
 **The numbers are only as good as the inputs.** Check costs with suppliers and
 the structure, payroll and tax with an accountant.

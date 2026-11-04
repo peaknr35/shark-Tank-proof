@@ -54,7 +54,15 @@ The ledger checks this in code, not only here:
 - A `MEASURED` demand claim names its commitment: `--commitment paid`,
   `deposit`, `signed`, `booked` or `intro`. A signup, a waitlist, a follow, a
   like or a download is none of them, so it is not a buyer; log it as
-  `MEASURED`, kind `other`.
+  `MEASURED`, kind `other`. A buyer claim whose text uses one of those words
+  is refused even with a commitment ("200 signups", `--commitment paid`).
+- A buyer's evidence row names the original that fits the commitment: a
+  receipt, invoice, payment or order export for `paid` or `deposit`; a signed
+  page, contract, agreement or LOI for `signed`; a booking or calendar invite
+  for `booked`; the email or message for `intro`.
+- The ledger cannot open the original. It stops shortcuts, not someone who
+  edits `claims.csv` and `evidence-log.md` together. Keep the originals in
+  `founder/evidence/` so they can be checked.
 - Its number counts the buyers: "62", "2 of 5". A logged no is "0" or
   "0 of 10". A blank, "not yet" or "zero" is refused.
 - A buyer needs its own evidence id. A computed claim cannot be a buyer.
